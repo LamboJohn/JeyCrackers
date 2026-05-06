@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jey Crackers - Admin Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css?v=2">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Outfit:wght@300;400;600;700;800;900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --admin-bg: #0a0c10;
+        --admin-card: #161b22;
+        --admin-border: #30363d;
+      }
+      body { background: var(--admin-bg); }
+      .admin-pagination {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 20px;
+        padding: 20px;
+        background: var(--admin-card);
+        border-radius: 12px;
+        border: 1px solid var(--admin-border);
+      }
+      .pagination-info { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 0.9rem; }
+      .pagination-info select {
+        background: var(--admin-bg);
+        color: #fff;
+        border: 1px solid var(--admin-border);
+        padding: 5px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      .pagination-controls { display: flex; align-items: center; gap: 15px; }
+      #pageNumber { font-weight: 600; color: var(--gold); min-width: 100px; text-align: center; }
+    </style>
+</head>
+<body class="admin-body">
+    <div id="loginOverlay" class="login-overlay active">
+      <form id="loginForm" class="login-card">
+        <h2>Admin Login</h2>
+        <p>Enter your credentials to manage Jey Crackers</p>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="loginEmail" placeholder="admin@jeycrackers.com" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="button primary full">Access Dashboard</button>
+      </form>
+    </div>
+
+    <header class="site-header">
+      <nav class="nav">
+        <a href="index.html" class="brand">
+          <img src="images/jeycrackers-j-edited.png" alt="Jey Crackers" class="brand-logo">
+          <span class="brand-wordmark">JEYCRACKERS</span>
+        </a>
+        <div class="nav-links">
+          <a href="index.html">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2Zm-1 14.5v-9l6 4.5-6 4.5Z"/></svg>
+            Site
+          </a>
+          <a href="#" id="logoutBtn">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m17 7-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5-5-5ZM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5Z"/></svg>
+            Logout
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="admin-hero">
+        <h1>Admin Panel: Manage Jeycrackers</h1>
+      </section>
+
+      <section class="admin-stats" aria-label="Admin summary">
+        <div><strong id="statProducts">0</strong><span>Products</span></div>
+        <div><strong id="statCategories">0</strong><span>Categories</span></div>
+        <div><strong id="statEnquiries">0</strong><span>Enquiries</span></div>
+      </section>
+
+      <section class="admin-tabs" aria-label="Admin sections">
+        <button class="admin-tab active" type="button" data-admin-tab="products">Products</button>
+        <button class="admin-tab" type="button" data-admin-tab="enquiries">Enquiries</button>
+        <button class="admin-tab" type="button" data-admin-tab="settings">Site Settings</button>
+        <button class="admin-tab" type="button" data-admin-tab="hero">Hero Manager</button>
+        <button class="admin-tab" type="button" data-admin-tab="promo">Promo Codes</button>
+        <button class="admin-tab" type="button" data-admin-tab="help">How to Use</button>
+      </section>
+
+      <section id="productsPanel" class="admin-panel admin-section active" aria-labelledby="products-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="products-title">Catalogue</h2>
+          </div>
+          <div class="section-actions">
+            <button onclick="window.showProductForm()" class="button sm primary">+ Add Product</button>
+            <div class="export-container" style="position:relative;">
+              <button onclick="window.toggleExportMenu('productExportMenu')" class="button sm ghost" style="color:var(--gold); border-color:var(--gold)">Export ▾</button>
+              <div id="productExportMenu" class="export-menu">
+                <button onclick="window.exportProductsPDF()">As PDF Report</button>
+                <button onclick="window.exportProductsExcel()">As Excel Sheet</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <form id="productForm" class="admin-form" style="display:none; border: 1px solid rgba(255,215,0,0.1); padding: 20px; border-radius: 12px; background: rgba(0,0,0,0.2); margin-bottom: 30px;">
+          <input type="hidden" id="productId">
+          <div>
+            <label for="productName">Product name</label>
+            <input id="productName" required>
+          </div>
+          <div>
+            <label for="productCategory">Category</label>
+            <input id="productCategory" list="categoryOptions" required>
+            <datalist id="categoryOptions"></datalist>
+          </div>
+          <div>
+            <label for="productPrice">Offer Price (Rs)</label>
+            <input id="productPrice" type="number" min="0" step="1" required>
+          </div>
+          <div>
+            <label for="productMarketPrice">Market Price (Rs)</label>
+            <input id="productMarketPrice" type="number" min="0" step="1" required>
+          </div>
+          <div>
+            <label for="productUnit">Unit</label>
+            <input id="productUnit" placeholder="10 pcs" required>
+          </div>
+          <div>
+            <label for="productImageUpload">Product image</label>
+            <input id="productImageUpload" type="file" accept="image/*">
+            <input id="productImageData" type="hidden">
+            <div id="imagePreview" class="admin-image-preview">No image selected</div>
+          </div>
+          <div>
+            <label for="productColor">Fallback color</label>
+            <input id="productColor" type="color" value="#ff4500">
+          </div>
+          <div class="admin-form-wide">
+            <label for="productNote">Short note (Optional)</label>
+            <textarea id="productNote" rows="3"></textarea>
+          </div>
+          <div class="admin-form-actions">
+            <button class="button primary" type="submit">Save Product</button>
+            <button class="button ghost" type="button" onclick="window.hideProductForm()">Cancel / Close</button>
+          </div>
+        </form>
+
+        <div class="admin-table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th onclick="window.setSort('id')" style="cursor:pointer"># ↕</th>
+                <th onclick="window.setSort('name')" style="cursor:pointer">Product ↕</th>
+                <th onclick="window.setSort('category')" style="cursor:pointer">Category ↕</th>
+                <th onclick="window.setSort('price')" style="cursor:pointer">Price ↕</th>
+                <th>Unit</th>
+                <th>Img</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="productRows"></tbody>
+          </table>
+        </div>
+
+        <div class="admin-pagination">
+          <div class="pagination-info">
+            <span>Show</span>
+            <select id="pageSize" onchange="window.changePageSize(Number(this.value))">
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="30">30</option>
+              <option value="40">40</option>
+            </select>
+            <span>Entries</span>
+          </div>
+          <div class="pagination-controls">
+            <button class="button sm ghost" id="prevPage" onclick="window.changePage(-1)">&laquo;</button>
+            <div id="pageNumber"></div>
+            <button class="button sm ghost" id="nextPage" onclick="window.changePage(1)">&raquo;</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="settingsPanel" class="admin-panel admin-section" aria-labelledby="settings-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Website</p>
+            <h2 id="settings-title">Site Settings</h2>
+          </div>
+          <p id="settingsStatus">Not saved</p>
+        </div>
+        <form id="settingsForm" class="admin-form">
+          <div>
+            <label for="shopName">Shop name</label>
+            <input id="shopName" required>
+          </div>
+          <div>
+            <label for="phone">Support Phone</label>
+            <input id="phone" required>
+          </div>
+          <div>
+            <label for="whatsapp">WhatsApp (with country code)</label>
+            <input id="whatsapp" placeholder="91XXXXXXXXXX">
+          </div>
+          <div>
+            <label for="city">Location City</label>
+            <input id="city">
+          </div>
+          <div class="admin-form-wide">
+            <label for="heroTitleInput">Hero Banner Title</label>
+            <input id="heroTitleInput">
+          </div>
+          <div class="admin-form-wide">
+            <label for="heroTextInput">Hero Banner Subtext</label>
+            <textarea id="heroTextInput" rows="3"></textarea>
+          </div>
+          <div class="admin-form-actions">
+            <button class="button primary" type="submit">Save All Settings</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="heroPanel" class="admin-panel admin-section" aria-labelledby="hero-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Visuals</p>
+            <h2 id="hero-title">Hero Slideshow</h2>
+          </div>
+        </div>
+        
+        <form id="heroForm" class="admin-form">
+          <input type="hidden" id="slideId">
+          <input type="hidden" id="slideEyebrow">
+          <input type="hidden" id="slideTitle">
+          <input type="hidden" id="slideDescription">
+          <input type="hidden" id="slideButtonText">
+          <input type="hidden" id="slideButtonLink">
+          
+          <div class="admin-form-wide">
+            <label>Background Image (1920x600 recommended)</label>
+            <input type="file" id="slideImageUpload" accept="image/*">
+            <input type="hidden" id="slideImageData">
+            <div id="slideImagePreview" class="admin-image-preview">No background image</div>
+          </div>
+          
+          <div class="admin-form-wide">
+            <label>Background Video (Optional, MP4)</label>
+            <input type="file" id="slideVideoUpload" accept="video/mp4">
+            <input type="hidden" id="slideVideoData">
+            <div id="slideVideoPreview" class="admin-image-preview">No background video</div>
+          </div>
+
+          <div class="admin-form-actions">
+            <button class="button primary" type="submit">Save Slide</button>
+            <button id="clearHeroForm" class="button ghost" type="button">Clear</button>
+          </div>
+        </form>
+
+        <div class="admin-table-wrapper" style="margin-top:30px">
+          <table>
+            <thead>
+              <tr>
+                <th>Preview</th>
+                <th>Type</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="slideRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="promoPanel" class="admin-panel admin-section">
+        <h2>Promo Codes</h2>
+        <p>Coming Soon: Manage discounts and coupons.</p>
+      </section>
+
+      <section id="enquiriesPanel" class="admin-panel admin-section" aria-labelledby="enquiries-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Sales</p>
+            <h2 id="enquiries-title">Customer Enquiries</h2>
+          </div>
+          <div class="section-actions">
+            <div class="export-container" style="position:relative;">
+              <button onclick="window.toggleExportMenu('exportMenu')" class="button sm ghost" style="color:var(--gold); border-color:var(--gold)">Export Data ▾</button>
+              <div id="exportMenu" class="export-menu">
+                <button onclick="window.exportInquiriesPDF()">As PDF Report</button>
+                <button onclick="window.exportInquiriesExcel()">As Excel Sheet</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="admin-table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th onclick="window.setInquirySort('timestamp')" style="cursor:pointer">Date ↕</th>
+                <th onclick="window.setInquirySort('customerName')" style="cursor:pointer">Customer ↕</th>
+                <th>Location</th>
+                <th>Phone</th>
+                <th onclick="window.setInquirySort('total')" style="cursor:pointer">Items & Total ↕</th>
+                <th onclick="window.setInquirySort('status')" style="cursor:pointer">Status ↕</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="inquiryRows"></tbody>
+          </table>
+        </div>
+        <div class="admin-pagination">
+          <div class="pagination-info">
+            <span>Show</span>
+            <select id="inquiryPageSize" onchange="window.changeInquiryPageSize(Number(this.value))">
+              <option value="10">10</option>
+              <option value="20" selected>20</option>
+              <option value="30">30</option>
+              <option value="40">40</option>
+            </select>
+            <span>Entries</span>
+          </div>
+          <div class="pagination-controls">
+            <button class="button sm ghost" id="prevInquiryPage" onclick="window.changeInquiryPage(-1)">&laquo;</button>
+            <div id="inquiryPageNumber"></div>
+            <button class="button sm ghost" id="nextInquiryPage" onclick="window.changeInquiryPage(1)">&raquo;</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="helpPanel" class="admin-panel admin-section">
+        <h2>How to Use</h2>
+        <div class="help-grid">
+          <div class="help-card">
+            <h3>Adding Products</h3>
+            <p>Fill the form, upload an image, and click "Save". If you leave the image blank, a color box will be used.</p>
+          </div>
+          <div class="help-card">
+            <h3>Editing Settings</h3>
+            <p>Update your shop name or contact info in the Settings tab. This updates the header and WhatsApp buttons instantly.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+    <img id="pdfLogo" src="images/jeycrackers-j-edited.png" style="display:none;">
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/products-data.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
