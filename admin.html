@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jey Crackers - Admin Dashboard</title>
-    <link rel="stylesheet" href="css/styles.css?v=2">
+    <link rel="stylesheet" href="css/styles.css?v=45">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Outfit:wght@300;400;600;700;800;900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
@@ -97,9 +97,14 @@
       <section id="productsPanel" class="admin-panel admin-section active" aria-labelledby="products-title">
         <div class="section-heading">
           <div>
+            <p class="eyebrow">Inventory</p>
             <h2 id="products-title">Catalogue</h2>
           </div>
-          <div class="section-actions">
+          <div class="admin-header-actions" style="display:flex; gap:12px; align-items:center;">
+            <div class="admin-search-wrap" style="position:relative; flex:1; min-width:200px;">
+              <input type="text" id="adminSearch" placeholder="Search products..." oninput="window.renderProducts()" style="width:100%; padding:8px 12px 8px 36px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff;">
+              <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); opacity:0.5;">🔍</span>
+            </div>
             <button onclick="window.showProductForm()" class="button sm primary">+ Add Product</button>
             <div class="export-container" style="position:relative;">
               <button onclick="window.toggleExportMenu('productExportMenu')" class="button sm ghost" style="color:var(--gold); border-color:var(--gold)">Export ▾</button>
@@ -162,8 +167,9 @@
                 <th onclick="window.setSort('name')" style="cursor:pointer">Product ↕</th>
                 <th onclick="window.setSort('category')" style="cursor:pointer">Category ↕</th>
                 <th onclick="window.setSort('price')" style="cursor:pointer">Price ↕</th>
-                <th>Unit</th>
-                <th>Img</th>
+                <th onclick="window.setSort('unit')" style="cursor:pointer">Unit ↕</th>
+                <th onclick="window.setSort('imageData')" style="cursor:pointer">Img ↕</th>
+                <th onclick="window.setSort('inStock')" style="cursor:pointer">Stock ↕</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -179,6 +185,7 @@
               <option value="20">20</option>
               <option value="30">30</option>
               <option value="40">40</option>
+              <option value="9999">All</option>
             </select>
             <span>Entries</span>
           </div>
@@ -349,6 +356,25 @@
         </div>
       </section>
     </main>
+    <!-- Image Crop Modal -->
+    <div id="cropModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.85); backdrop-filter:blur(6px); align-items:center; justify-content:center;">
+      <div style="background:#161b22; border:1px solid #30363d; border-radius:16px; padding:24px; max-width:520px; width:95%; box-shadow:0 20px 60px rgba(0,0,0,0.6);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <h3 style="color:var(--gold); font-family:var(--font-display); margin:0; font-size:1.1rem;">✂ Crop Image (1:1 Square)</h3>
+          <button onclick="window.closeCropModal()" style="background:none; border:none; color:#fff; font-size:1.4rem; cursor:pointer; opacity:0.6; padding:4px 8px;">&times;</button>
+        </div>
+        <p style="color:rgba(255,255,255,0.5); font-size:0.8rem; margin:0 0 12px;">Drag to move • Scroll to zoom • Blue box = crop area</p>
+        <div id="cropContainer" style="position:relative; width:100%; aspect-ratio:1/1; background:#0a0c10; border-radius:10px; overflow:hidden; cursor:move; border:2px solid #30363d;">
+          <canvas id="cropCanvas" style="display:block; width:100%; height:100%;"></canvas>
+          <div id="cropOverlay" style="position:absolute; inset:0; box-shadow:0 0 0 9999px rgba(0,0,0,0.55); border:2px solid rgba(255,215,0,0.8); pointer-events:none; border-radius:4px;"></div>
+        </div>
+        <div style="display:flex; gap:12px; margin-top:16px; justify-content:flex-end;">
+          <button onclick="window.closeCropModal()" class="button sm ghost">Cancel</button>
+          <button onclick="window.applyCrop()" class="button sm primary" style="background:var(--gold); color:#000; font-weight:700;">✔ Use Cropped Image</button>
+        </div>
+      </div>
+    </div>
+
     <img id="pdfLogo" src="images/jeycrackers-j-edited.png" style="display:none;">
 
     <!-- Firebase SDKs -->
@@ -360,6 +386,6 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-    <script src="js/admin.js"></script>
+    <script src="js/admin.js?v=45"></script>
 </body>
 </html>

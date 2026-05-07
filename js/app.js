@@ -1,7 +1,7 @@
 // Default data is now loaded from products-data.js
 let products = defaultProducts;
 let currentPage = 1;
-let pageSize = window.innerWidth < 600 ? 10 : 20;
+let pageSize = 40;
 
 document.addEventListener("DOMContentLoaded", () => {
   const ps = document.querySelector("#pageSize");
@@ -302,22 +302,41 @@ function renderProducts() {
       <div class="product-visual">
         ${productVisual(product)}
         ${discount > 0 ? `<div class="discount-badge">${discount}% OFF</div>` : ''}
+        
+        <!-- Mobile Thumbnail Controls (Hidden on PC) -->
+        <div class="mobile-thumb-controls">
+          ${product.inStock !== false && qty === 0 ? `<button class="thumbnail-add-btn" data-add="${product.id}">+</button>` : ''}
+          ${qty > 0 ? `
+            <div class="thumbnail-stepper">
+              <button type="button" data-minus="${product.id}">-</button>
+              <span class="qty-val">${qty}</span>
+              <button type="button" data-plus="${product.id}">+</button>
+            </div>
+          ` : ''}
+        </div>
+
         ${product.inStock === false ? `<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-15deg); background:rgba(0,0,0,0.8); color:#fff; padding:5px 15px; border:2px solid #fff; font-weight:900; z-index:20; white-space:nowrap; pointer-events:none;">OUT OF STOCK</div>` : ''}
       </div>
       <div class="product-details">
         <h3>${product.name}</h3>
         <span class="tag">${product.category}</span>
+        <div class="price-line" style="margin-top: 2px !important; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 2px !important;">
+          <div class="price-stack" style="display: flex; flex-direction: column; gap: 0;">
+            ${product.marketPrice > product.price ? `<span class="market-price" style="font-size: 0.75rem !important; opacity: 0.6; text-decoration: line-through; margin-bottom: -2px;">${price(product.marketPrice)}</span>` : ''}
+            <div style="display: flex; align-items: baseline; gap: 4px;">
+              <strong class="price" style="font-size: 1.05rem !important; color: var(--gold);">${price(product.price)}</strong>
+              <span class="unit" style="font-size: 0.75rem !important; opacity: 0.8; color: #fff;">/ ${product.unit || "unit"}</span>
+            </div>
+          </div>
+        </div>
         <p class="product-note">${product.note || ""}</p>
       </div>
       <div class="product-bottom">
-        <div class="price-line">
-          <div class="price-stack">
-            ${product.marketPrice > product.price ? `<span class="market-price">${price(product.marketPrice)}</span>` : ''}
-            <strong class="price">${price(product.price)}</strong>
-          </div>
-          <span class="unit">/ ${product.unit || "unit"}</span>
+        
+        <!-- Desktop Bottom Controls (Hidden on Mobile) -->
+        <div class="desktop-bottom-controls">
+          <div class="qty-row">${quantityControl}</div>
         </div>
-        <div class="qty-row">${quantityControl}</div>
       </div>
     `;
     container.append(card);
@@ -482,14 +501,7 @@ document.addEventListener("click", e => {
     }
   }
 
-  const toggle = e.target.closest("#cartToggle");
-  const popover = document.querySelector("#cartPopover");
-  
-  if (toggle) {
-    popover?.classList.toggle("active");
-  } else if (popover && popover.classList.contains("active") && !e.target.closest("#cartPopover")) {
-    popover.classList.remove("active");
-  }
+    // Cart toggle handled at bottom of file via specialized listener
 });
 
 document.addEventListener("input", e => {
@@ -642,4 +654,21 @@ function initReveal() {
 document.addEventListener("DOMContentLoaded", () => {
   initializeApp();
   startSyncs();
+
+  // Toggle Cart Popover
+  const cartToggle = document.querySelector("#cartToggle");
+  const cartPopover = document.querySelector("#cartPopover");
+  
+  cartToggle?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    cartPopover?.classList.toggle("active");
+  });
+
+  document.addEventListener("click", () => {
+    cartPopover?.classList.remove("active");
+  });
+
+  cartPopover?.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
 });

@@ -12,6 +12,7 @@ let sortKey = 'name';
 let sortDir = 'asc';
 let iSortKey = 'timestamp';
 let iSortDir = 'desc';
+let pendingImages = new Map();
 
 // History for Undo
 let lastDeleted = null;
@@ -136,11 +137,24 @@ function renderProducts() {
   productRows.innerHTML = "";
   
   const list = products.length > 0 ? products : defaultProducts;
+  const searchTerm = document.querySelector("#adminSearch")?.value.toLowerCase() || "";
+  const filteredList = list.filter(p => p.name.toLowerCase().includes(searchTerm) || p.category.toLowerCase().includes(searchTerm));
 
   // Apply Sorting
-  list.sort((a, b) => {
+  filteredList.sort((a, b) => {
     let valA = a[sortKey];
     let valB = b[sortKey];
+    
+    // Special handling for image presence
+    if (sortKey === 'imageData') {
+      valA = a.imageData ? 1 : 0;
+      valB = b.imageData ? 1 : 0;
+    }
+    // Special handling for stock status
+    if (sortKey === 'inStock') {
+      valA = a.inStock === false ? 0 : 1;
+      valB = b.inStock === false ? 0 : 1;
+    }
     
     if (typeof valA === 'string') valA = valA.toLowerCase();
     if (typeof valB === 'string') valB = valB.toLowerCase();
@@ -151,23 +165,23 @@ function renderProducts() {
   });
 
   // Pagination Logic
-  const totalPages = Math.ceil(list.length / pageSize);
+  const totalPages = Math.ceil(filteredList.length / pageSize);
   if (currentPage > totalPages) currentPage = Math.max(1, totalPages);
   
   const start = (currentPage - 1) * pageSize;
   const end = start + pageSize;
-  const paginatedList = list.slice(start, end);
+  const paginatedList = filteredList.slice(start, end);
 
   paginatedList.forEach((p, index) => {
     const globalIndex = start + index;
     const row = document.createElement("tr");
+    const isPending = pendingImages.has(p.id);
+    const pendingData = isPending ? pendingImages.get(p.id) : undefined;
+    const currentImg = isPending ? pendingData : p.imageData;
     row.innerHTML = `
       <td style="color:var(--muted); font-weight:600;">#${globalIndex + 1}</td>
       <td>
         <div style="display:flex; align-items:center; gap:12px;">
-          <div class="admin-product-thumb-container">
-            ${p.imageData ? `<img src="${p.imageData}" class="admin-product-thumb">` : `<div class="admin-product-thumb" style="background:${p.color || '#333'}"></div>`}
-          </div>
           <div style="display:flex; flex-direction:column;">
             <strong style="color:#fff; font-size:0.95rem;">${p.name}</strong>
             <span style="font-size:0.75rem; color:var(--muted)">ID: ${p.id.slice(0,8)}</span>
@@ -183,13 +197,34 @@ function renderProducts() {
       </td>
       <td style="font-weight:600; color:var(--muted)">${p.unit}</td>
       <td>
-        <button class="button sm ${p.inStock === false ? 'danger' : 'success'}" onclick="toggleStock('${p.id}', ${p.inStock === false})" style="min-width:100px; padding:6px 12px; font-size:0.7rem;">
-          ${p.inStock === false ? 'Out of Stock' : 'In Stock'}
-        </button>
+        <div class="admin-img-cell">
+          <div class="img-row-layout">
+            <div class="admin-img-wrapper">
+              <label class="img-upload-label" title="Click to change image">
+                ${currentImg ? `<img src="${currentImg}" class="admin-table-thumb">` : `<div class="admin-table-thumb-placeholder">Add Img</div>`}
+                <input type="file" hidden accept="image/*" onchange="window.handleImageSelect('${p.id}', this)">
+              </label>
+              ${currentImg ? `<button class="img-remove-x" onclick="window.removeImageLocally('${p.id}')" title="Remove Image">✕</button>` : ''}
+            </div>
+            ${isPending ? `
+              <div style="display:flex; align-items:center;">
+                <button class="button sm success" onclick="window.saveImageChanges('${p.id}')" title="Save Changes" style="padding:6px; min-width:34px; display:flex; align-items:center; justify-content:center; border-radius:8px; box-shadow:0 4px 12px rgba(34,197,94,0.4); background:#22c55e; border:none;">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM12 11a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM7 5v3h8V5H7z"/></svg>
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      </td>
+      <td>
+        <label class="admin-toggle" title="Toggle Availability">
+          <input type="checkbox" ${p.inStock !== false ? 'checked' : ''} onchange="toggleStock('${p.id}', this.checked)">
+          <span class="admin-toggle-slider"></span>
+        </label>
       </td>
       <td class="admin-actions">
         <button class="button sm ghost" onclick="editProduct('${p.id}')" title="Edit">Edit</button>
-        <button class="button sm danger" onclick="deleteProduct('${p.id}')" title="Delete">Delete</button>
+        <button class="button sm danger" onclick="deleteProduct('${p.id}')" title="Delete">Del</button>
       </td>
     `;
     productRows.appendChild(row);
@@ -495,6 +530,242 @@ window.editProduct = (id) => {
   productForm.productNote.value = p.note || "";
   productForm.productColor.value = p.color || "#ffd700";
   window.scrollTo({ top: productForm.offsetTop - 100, behavior: 'smooth' });
+};
+
+window.cancelImageChanges = (id) => {
+  pendingImages.delete(id);
+  renderProducts();
+};
+
+// ─── Image Crop Engine ───────────────────────────────────────────────────────
+const cropState = {
+  id: null,           // product id being edited
+  img: null,          // HTMLImageElement of the raw upload
+  offsetX: 0,         // image pan offset in canvas-px
+  offsetY: 0,
+  zoom: 1,            // zoom scale (1 = fit-to-canvas)
+  minZoom: 1,
+  dragging: false,
+  lastX: 0,
+  lastY: 0,
+};
+
+function getCropCanvas() { return document.getElementById('cropCanvas'); }
+
+function drawCrop() {
+  const canvas = getCropCanvas();
+  if (!canvas || !cropState.img) return;
+  const size = canvas.offsetWidth;
+  canvas.width  = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, size, size);
+  const w = cropState.img.naturalWidth  * cropState.zoom;
+  const h = cropState.img.naturalHeight * cropState.zoom;
+  ctx.drawImage(cropState.img, cropState.offsetX, cropState.offsetY, w, h);
+}
+
+function clampOffset() {
+  const canvas = getCropCanvas();
+  if (!canvas || !cropState.img) return;
+  const size = canvas.width;
+  const w = cropState.img.naturalWidth  * cropState.zoom;
+  const h = cropState.img.naturalHeight * cropState.zoom;
+  // Ensure the image always covers the entire canvas
+  cropState.offsetX = Math.min(0, Math.max(size - w, cropState.offsetX));
+  cropState.offsetY = Math.min(0, Math.max(size - h, cropState.offsetY));
+}
+
+function openCropModal(id, file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      cropState.id  = id;
+      cropState.img = img;
+
+      // Fit the shorter dimension to canvas
+      const canvas = getCropCanvas();
+      const size   = canvas.offsetWidth || 460;
+      canvas.width  = size;
+      canvas.height = size;
+
+      // Minimum zoom = cover the square canvas
+      const minZ = size / Math.min(img.naturalWidth, img.naturalHeight);
+      cropState.zoom    = minZ;
+      cropState.minZoom = minZ;
+
+      // Center image
+      const w = img.naturalWidth  * cropState.zoom;
+      const h = img.naturalHeight * cropState.zoom;
+      cropState.offsetX = (size - w) / 2;
+      cropState.offsetY = (size - h) / 2;
+      clampOffset();
+      drawCrop();
+
+      const modal = document.getElementById('cropModal');
+      modal.style.display = 'flex';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+window.closeCropModal = () => {
+  document.getElementById('cropModal').style.display = 'none';
+  cropState.id = null;
+};
+
+window.applyCrop = () => {
+  const canvas = getCropCanvas();
+  const size   = canvas.width;
+  // Draw final 800×800 crop
+  const out = document.createElement('canvas');
+  out.width  = 800;
+  out.height = 800;
+  const ctx = out.getContext('2d');
+  const scale = 800 / size;
+  ctx.drawImage(
+    cropState.img,
+    -cropState.offsetX / cropState.zoom,
+    -cropState.offsetY / cropState.zoom,
+    cropState.img.naturalWidth,
+    cropState.img.naturalHeight,
+    0, 0,
+    cropState.img.naturalWidth  * cropState.zoom * scale,
+    cropState.img.naturalHeight * cropState.zoom * scale
+  );
+  const dataUrl = out.toDataURL('image/jpeg', 0.82);
+  pendingImages.set(cropState.id, dataUrl);
+  window.closeCropModal();
+  renderProducts();
+};
+
+// Drag to pan
+document.addEventListener('DOMContentLoaded', () => {
+  const container = document.getElementById('cropContainer');
+  if (!container) return;
+
+  container.addEventListener('mousedown', (e) => {
+    if (!cropState.img) return;
+    cropState.dragging = true;
+    cropState.lastX = e.clientX;
+    cropState.lastY = e.clientY;
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (!cropState.dragging) return;
+    cropState.offsetX += e.clientX - cropState.lastX;
+    cropState.offsetY += e.clientY - cropState.lastY;
+    cropState.lastX = e.clientX;
+    cropState.lastY = e.clientY;
+    clampOffset();
+    drawCrop();
+  });
+  window.addEventListener('mouseup', () => { cropState.dragging = false; });
+
+  // Touch support
+  container.addEventListener('touchstart', (e) => {
+    if (!cropState.img || e.touches.length !== 1) return;
+    cropState.dragging = true;
+    cropState.lastX = e.touches[0].clientX;
+    cropState.lastY = e.touches[0].clientY;
+    e.preventDefault();
+  }, { passive: false });
+  window.addEventListener('touchmove', (e) => {
+    if (!cropState.dragging || e.touches.length !== 1) return;
+    cropState.offsetX += e.touches[0].clientX - cropState.lastX;
+    cropState.offsetY += e.touches[0].clientY - cropState.lastY;
+    cropState.lastX = e.touches[0].clientX;
+    cropState.lastY = e.touches[0].clientY;
+    clampOffset();
+    drawCrop();
+  }, { passive: false });
+  window.addEventListener('touchend', () => { cropState.dragging = false; });
+
+  // Scroll to zoom
+  container.addEventListener('wheel', (e) => {
+    if (!cropState.img) return;
+    e.preventDefault();
+    const canvas = getCropCanvas();
+    const rect   = canvas.getBoundingClientRect();
+    const pivotX = e.clientX - rect.left;
+    const pivotY = e.clientY - rect.top;
+    const delta  = e.deltaY > 0 ? 0.92 : 1.09;
+    const newZoom = Math.max(cropState.minZoom, cropState.zoom * delta);
+    const ratio   = newZoom / cropState.zoom;
+    cropState.offsetX = pivotX + (cropState.offsetX - pivotX) * ratio;
+    cropState.offsetY = pivotY + (cropState.offsetY - pivotY) * ratio;
+    cropState.zoom = newZoom;
+    clampOffset();
+    drawCrop();
+  }, { passive: false });
+});
+
+window.handleImageSelect = (id, input) => {
+  const file = input.files[0];
+  if (!file) return;
+  openCropModal(id, file);
+};
+
+window.removeImageLocally = (id) => {
+  pendingImages.set(id, null);
+  renderProducts();
+};
+
+// Toast notification helper
+function showToast(message = '✓ Saved', color = '#22c55e') {
+  const t = document.createElement('div');
+  t.textContent = message;
+  t.style.cssText = `
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+    background:${color}; color:#fff; font-weight:700; font-size:0.9rem;
+    padding:10px 22px; border-radius:999px; z-index:99999;
+    box-shadow:0 4px 20px rgba(0,0,0,0.4);
+    opacity:1; transition:opacity 0.5s ease;
+    white-space:nowrap; pointer-events:none;
+  `;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; }, 1800);
+  setTimeout(() => { t.remove(); }, 2400);
+}
+
+window.saveImageChanges = async (id) => {
+  const data = pendingImages.get(id);
+  try {
+    await window.db.collection("products").doc(id).update({ imageData: data });
+    pendingImages.delete(id);
+    showToast('✓ Image Saved!');
+    // UI will update from onSnapshot
+  } catch (err) {
+    showToast('✗ Save Failed', '#ef4444');
+  }
+};
+
+window.uploadProductImage = async (id, input) => {
+  const file = input.files[0];
+  if (!file) return;
+  
+  const originalLabel = input.parentElement;
+  const originalHtml = originalLabel.innerHTML;
+  originalLabel.innerHTML = `<div class="admin-table-thumb-placeholder">...</div>`;
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const dataUrl = e.target.result;
+    const img = new Image();
+    img.onload = async () => {
+      const compressed = getCompressedDataUrl(img, 400);
+      try {
+        await window.db.collection("products").doc(id).update({ imageData: compressed });
+      } catch (err) {
+        alert("Upload failed: " + err.message);
+        originalLabel.innerHTML = originalHtml;
+      }
+    };
+    img.src = dataUrl;
+  };
+  reader.readAsDataURL(file);
 };
 
 window.deleteProduct = async (id) => {
