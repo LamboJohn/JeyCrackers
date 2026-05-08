@@ -19,7 +19,6 @@
       <div class="top-bar">
         <div class="top-bar-track">
           <span>As per the supreme court order, Online sale of firecrackers is not permitted ! Don't worry, Request a quote with us and get the details of our crackers, Please add and submit your Enquiry. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-          <span>As per the supreme court order, Online sale of firecrackers is not permitted ! Don't worry, Request a quote with us and get the details of our crackers, Please add and submit your Enquiry. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
         </div>
       </div>
 
@@ -31,11 +30,18 @@
           <span class="brand-wordmark">JEYCRACKERS</span>
         </a>
 
+        <button class="nav-toggle" id="hamburger" aria-label="Toggle navigation" style="background: none; border: none; color: var(--gold, #FFD700); cursor: pointer; display: none; padding: 10px; margin-left: auto; filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.4));">
+          <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+
         <!-- Navigation Links -->
-        <nav class="nav-menu" id="navMenu">
-          <a href="#top">Home</a>
+        <nav class="nav-links" id="navMenu">
+          <a href="index.html">Home</a>
           <a href="#products">Products</a>
           <a href="#contact">Contact</a>
+          <a href="ordering-process.html">How to Order</a>
+          <a href="shipping.html">Shipping Info</a>
+          <a href="faq.html">FAQ</a>
         </nav>
 
         <!-- CTA -->
@@ -44,6 +50,8 @@
         </div>
       </div>
     </header>
+
+    <div class="nav-backdrop" id="navBackdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998;"></div>
 
     <main id="top">
       <section class="hero-slider" aria-label="Featured Highlights">
@@ -58,25 +66,19 @@
 
       <section class="trust-strip reveal" aria-label="Why customers trust Jey Crackers">
         <div class="trust-item">
-          <strong>Factory Price Deals</strong>
-          <span>Best-value festival packs</span>
+          <strong>Genuine Sivakasi Crackers</strong>
+          <span>Direct from the firework capital</span>
         </div>
         <div class="trust-item">
-          <strong>Safety-First Packing</strong>
-          <span>Careful handling for every enquiry</span>
+          <strong>Quality Checked Products</strong>
+          <span>100% safe and tested</span>
         </div>
         <div class="trust-item">
-          <strong>WhatsApp Support</strong>
-          <span>Quick confirmation from the shop</span>
+          <strong>Safe Packed Delivery</strong>
+          <span>Secure packaging for transport</span>
         </div>
         <div class="trust-item">
-          <strong>Transparent Quote</strong>
-          <span>Final bill shared before order</span>
-        </div>
-      </section>
-
-      <section class="notice" aria-label="Firecracker sales notice">
-        Orders are confirmed via WhatsApp based on availability and local regulations.
+          <strong>Serving Customers Across India</strong>
       </section>
 
       <section class="category-rail" aria-label="Quick categories">
@@ -90,6 +92,13 @@
             <h2 id="products-title">Add to List</h2>
           </div>
           <p id="productCount">Showing all items</p>
+        </div>
+
+        <!-- Trust Ribbon -->
+        <div style="text-align: center; font-size: 0.75rem; color: var(--gold); padding: 8px 5px; margin-bottom: 15px; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); white-space: nowrap; overflow-x: auto;">
+          <span>🚚 Pan India Delivery</span> &nbsp;|&nbsp; 
+          <span>💳 Secure UPI Payment</span> &nbsp;|&nbsp; 
+          <span>📦 Safe Packing</span>
         </div>
 
         <div class="toolbar" aria-label="Product filters">
@@ -799,7 +808,6 @@
 
 
       <section id="contact" class="contact-section" aria-labelledby="contact-title">
-      <section id="contact" class="contact-section" aria-labelledby="contact-title">
         <div>
           <p class="eyebrow">Connect</p>
           <h2 id="contact-title">Jey Crackers</h2>
@@ -823,6 +831,28 @@
             Mon – Sat: 9:00 AM – 9:00 PM
           </div>
         </address>
+      </section>
+
+      <section id="mini-faq" class="shipping-info-section reveal" style="padding: 40px 20px; background: #0f1118; margin: 40px auto; border-radius: 12px; border: 1px solid var(--line);">
+        <div class="section-heading" style="margin-bottom: 30px;">
+          <div>
+            <h2>❓ FAQs</h2>
+          </div>
+        </div>
+        <div class="shipping-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+          <div class="shipping-card" style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+            <h3 style="color: var(--gold); margin-bottom: 10px; font-size: 1.1rem;">❓ How can I place an order?</h3>
+            <p style="color: var(--muted); font-size: 0.9rem; line-height: 1.5;">Browse products on our website and send your enquiry directly through WhatsApp. Our team will contact you to confirm the order details.</p>
+          </div>
+          <div class="shipping-card" style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+            <h3 style="color: var(--gold); margin-bottom: 10px; font-size: 1.1rem;">❓ What is the minimum order amount?</h3>
+            <p style="color: var(--muted); font-size: 0.9rem; line-height: 1.5;">The minimum order amount for shipping is ₹3000.</p>
+          </div>
+          <div class="shipping-card" style="background: rgba(255,255,255,0.02); padding: 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+            <h3 style="color: var(--gold); margin-bottom: 10px; font-size: 1.1rem;">❓ How can I make payment?</h3>
+            <p style="color: var(--muted); font-size: 0.9rem; line-height: 1.5;">Payments can be made through the official UPI ID shared by our team after order confirmation.</p>
+          </div>
+        </div>
       </section>
     </main>
 

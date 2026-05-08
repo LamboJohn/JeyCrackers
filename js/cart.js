@@ -457,3 +457,62 @@ async function init() {
 }
 
 init();
+
+function initMobileMenu() {
+  const hamburger = document.querySelector("#hamburger");
+  const navMenu = document.querySelector("#navMenu");
+  const backdrop = document.querySelector("#navBackdrop");
+  
+  if (hamburger && navMenu) {
+    function toggleMenu(isOpen) {
+      navMenu.classList.toggle("active", isOpen);
+      document.documentElement.classList.toggle("no-scroll", isOpen);
+      document.body.classList.toggle("no-scroll", isOpen);
+      if (backdrop) backdrop.style.display = isOpen ? "block" : "none";
+      hamburger.classList.toggle("hidden", isOpen);
+    }
+
+    hamburger.addEventListener("click", () => {
+      const isOpen = !navMenu.classList.contains("active");
+      toggleMenu(isOpen);
+      
+      if (isOpen) {
+        history.pushState({ menu: "open" }, "");
+      }
+    });
+    
+    // Close menu when any link inside it is clicked
+    const links = navMenu.querySelectorAll("a");
+    links.forEach(link => {
+      link.addEventListener("click", () => {
+        if (navMenu.classList.contains("active")) {
+          toggleMenu(false);
+          
+          const href = link.getAttribute("href");
+          if (href && href.startsWith("#")) {
+            history.back(); // Only go back if it's an anchor link on the same page
+          }
+        }
+      });
+    });
+
+    // Close menu when clicking backdrop
+    if (backdrop) {
+      backdrop.addEventListener("click", () => {
+        if (navMenu.classList.contains("active")) {
+          toggleMenu(false);
+          history.back();
+        }
+      });
+    }
+
+    // Handle back button
+    window.addEventListener("popstate", (e) => {
+      if (navMenu.classList.contains("active")) {
+        toggleMenu(false);
+      }
+    });
+  }
+}
+
+initMobileMenu();

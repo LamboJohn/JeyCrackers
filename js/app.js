@@ -270,6 +270,9 @@ style.textContent = `
     padding: 0;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
   }
+  .no-scroll {
+    overflow: hidden !important;
+  }
   @media (max-width: 768px) {
     .play-video-btn {
       top: 10px !important;
@@ -471,7 +474,7 @@ function renderFloatingCart() {
     if (basket.size === 0) {
       pItems.innerHTML = '<p style="text-align:center; padding:10px; color:var(--muted);">List is empty</p>';
     } else {
-      [...basket.entries()].slice(0, 5).forEach(([id, q]) => {
+      [...basket.entries()].forEach(([id, q]) => {
         const p = products.find(x => x.id === id);
         if (p) {
           const div = document.createElement("div");
@@ -582,9 +585,56 @@ function initializeApp() {
 function initMobileMenu() {
   const hamburger = document.querySelector("#hamburger");
   const navMenu = document.querySelector("#navMenu");
+  const backdrop = document.querySelector("#navBackdrop");
+  
   if (hamburger && navMenu) {
+    function toggleMenu(isOpen) {
+      navMenu.classList.toggle("active", isOpen);
+      document.documentElement.classList.toggle("no-scroll", isOpen);
+      document.body.classList.toggle("no-scroll", isOpen);
+      if (backdrop) backdrop.style.display = isOpen ? "block" : "none";
+      hamburger.classList.toggle("hidden", isOpen);
+    }
+
     hamburger.addEventListener("click", () => {
-      navMenu.classList.toggle("active");
+      const isOpen = !navMenu.classList.contains("active");
+      toggleMenu(isOpen);
+      
+      if (isOpen) {
+        history.pushState({ menu: "open" }, "");
+      }
+    });
+    
+    // Close menu when any link inside it is clicked
+    const links = navMenu.querySelectorAll("a");
+    links.forEach(link => {
+      link.addEventListener("click", () => {
+        if (navMenu.classList.contains("active")) {
+          toggleMenu(false);
+          
+          const href = link.getAttribute("href");
+          if (href && href.startsWith("#")) {
+            history.back(); // Only go back if it's an anchor link on the same page
+          }
+        }
+      });
+    });
+
+    // Close menu when clicking backdrop
+    if (backdrop) {
+      backdrop.addEventListener("click", () => {
+        if (navMenu.classList.contains("active")) {
+          toggleMenu(false);
+          history.back();
+        }
+      });
+    }
+
+    // Handle back button
+    window.addEventListener("popstate", (e) => {
+      if (navMenu.classList.contains("active")) {
+        toggleMenu(false);
+      }
     });
   }
 }
@@ -600,11 +650,29 @@ document.addEventListener("click", e => {
 
   if (add) {
     addToBasket(add.dataset.add);
+    add.classList.add("btn-pop");
+    setTimeout(() => add.classList.remove("btn-pop"), 300);
+    
+    const badge = document.getElementById("cartBadge");
+    if (badge) {
+      badge.classList.add("badge-pop");
+      setTimeout(() => badge.classList.remove("badge-pop"), 300);
+    }
+
     const pModal = document.getElementById("productModal");
     if (pModal && pModal.style.display === "flex") openProductModal(add.dataset.add);
   }
   if (plus) {
     changeQuantity(plus.dataset.plus, 1);
+    plus.classList.add("btn-pop");
+    setTimeout(() => plus.classList.remove("btn-pop"), 300);
+
+    const badge = document.getElementById("cartBadge");
+    if (badge) {
+      badge.classList.add("badge-pop");
+      setTimeout(() => badge.classList.remove("badge-pop"), 300);
+    }
+
     const pModal = document.getElementById("productModal");
     if (pModal && pModal.style.display === "flex") openProductModal(plus.dataset.plus);
   }
@@ -822,16 +890,22 @@ document.addEventListener("DOMContentLoaded", () => {
   // Toggle Cart Popover
   const cartToggle = document.querySelector("#cartToggle");
   const cartPopover = document.querySelector("#cartPopover");
-
+ 
   cartToggle?.addEventListener("click", (e) => {
     e.stopPropagation();
-    cartPopover?.classList.toggle("active");
+    const isActive = cartPopover?.classList.toggle("active");
+    document.documentElement.classList.toggle("no-scroll", isActive);
+    document.body.classList.toggle("no-scroll", isActive);
   });
-
+ 
   document.addEventListener("click", () => {
-    cartPopover?.classList.remove("active");
+    if (cartPopover?.classList.contains("active")) {
+      cartPopover.classList.remove("active");
+      document.documentElement.classList.remove("no-scroll");
+      document.body.classList.remove("no-scroll");
+    }
   });
-
+ 
   cartPopover?.addEventListener("click", (e) => {
     e.stopPropagation();
   });

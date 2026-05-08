@@ -1969,7 +1969,21 @@ footer {
 
 @media (max-width: 640px) {
   body {
-    padding-bottom: 118px;
+    padding-bottom: 20px;
+  }
+
+  footer {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 20px !important;
+    padding: 20px 0 !important;
+  }
+
+  footer div {
+    text-align: center !important;
+    align-items: center !important;
   }
 
   .site-header {
@@ -1995,15 +2009,18 @@ footer {
   }
 
   .nav-container {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
     width: min(100%, calc(100% - 24px)) !important;
-    padding: 8px 0 !important;
-    gap: 10px !important;
+    padding: 8px 12px !important;
   }
 
-  .nav-toggle,
-  .nav-links {
+  .nav-toggle {
+    display: block !important;
+  }
+  .nav-toggle.hidden {
     display: none !important;
-    /* Removed hamburger menu entirely on mobile as requested */
   }
 
   .shop-btn {
@@ -2020,9 +2037,9 @@ footer {
     top: 0;
     right: 0;
     bottom: 0;
-    width: 85%;
-    /* Wider drawer for easier tapping */
-    max-width: 320px;
+    width: 60%;
+    /* Reduced width as requested */
+    max-width: 250px;
     background: #0b0b0b;
     flex-direction: column;
     padding: 80px 24px;
@@ -2209,7 +2226,7 @@ footer {
   }
 
   .trust-strip {
-    display: none;
+    display: grid;
     /* Removed as per request to save space and use hero instead */
   }
 
@@ -2834,7 +2851,7 @@ footer {
 
 /* --- PERFECT CART PAGE STYLES --- */
 .cart-page-container {
-  padding-top: 40px;
+  padding-top: 20px;
   padding-bottom: 80px;
 }
 
@@ -3783,4 +3800,92 @@ input:checked + .admin-toggle-slider:before {
   transform: translateX(20px);
 }
 input:focus + .admin-toggle-slider { box-shadow: 0 0 1px #22c55e; }
+
+/* Add to Cart Animations */
+@keyframes btnPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.btn-pop {
+  animation: btnPop 0.3s ease;
+}
+
+@keyframes badgePop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+.badge-pop {
+  animation: badgePop 0.3s ease;
+}
+
+/* Stepper Pop Animation */
+.stepper {
+  animation: stepperPop 0.2s ease;
+}
+
+@keyframes stepperPop {
+  0% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+/* Cart Popover List Scroll */
+#popoverItems {
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+/* Spacing Reductions */
+.hero-slider {
+  margin-bottom: 15px !important;
+}
+
+.trust-strip {
+  margin-top: 15px !important;
+  margin-bottom: 20px !important;
+  padding: 15px 0 !important;
+}
+
+.testimonials-section {
+  margin-bottom: 20px !important;
+}
+
+.contact-section {
+  margin-top: 15px !important;
+}
+
+@media (max-width: 640px) {
+  .products-section, #products {
+    margin-bottom: 0px !important;
+    padding-bottom: 0px !important;
+  }
+
+  #pagination {
+    margin-bottom: 0px !important;
+    padding-bottom: 0px !important;
+  }
+
+  .testimonials-section {
+    margin-top: 20px !important;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .testimonials-section h2 {
+    font-size: 1.3rem !important; /* Reduced heading font size */
+  }
+
+  #mini-faq {
+    margin-top: 10px !important;
+    padding-top: 15px !important;
+    padding-bottom: 15px !important;
+  }
+}
+
+
 
