@@ -498,38 +498,35 @@ window.toggleStock = async (id, newState) => {
 };
 
 window.editProduct = (id) => {
-  window.showProductForm();
-  
-  // Clear other highlights
-  document.querySelectorAll(".admin-actions .button").forEach(btn => {
-    btn.style.background = "";
-    btn.style.color = "";
-    btn.style.borderColor = "";
-  });
-  
   const p = products.find(x => x.id === id) || defaultProducts.find(x => x.id === id);
   if (!p) return;
 
-  // Highlight current edit button
-  const rows = Array.from(document.querySelectorAll("#productRows tr"));
-  const row = rows.find(r => r.querySelector(`button[onclick*="'${id}'"]`));
-  if (row) {
-    const editBtn = row.querySelector(`button[onclick^="editProduct"]`);
-    if (editBtn) {
-      editBtn.style.background = "var(--gold)";
-      editBtn.style.color = "#000";
-      editBtn.style.borderColor = "var(--gold)";
-    }
+  const modal = document.getElementById("editProductModal");
+  const form = document.getElementById("editForm");
+  
+  form.editProductId.value = p.id;
+  form.editProductName.value = p.name;
+  form.editProductCategory.value = p.category;
+  form.editProductPrice.value = p.price;
+  form.editProductMarketPrice.value = p.marketPrice || p.price * 3;
+  form.editProductUnit.value = p.unit;
+  form.editProductVideo.value = p.videoUrl || "";
+  form.editProductNote.value = p.note || "";
+  form.editProductColor.value = p.color || "#ffd700";
+  form.editProductImageData.value = p.imageData || "";
+  
+  const imgPrev = document.getElementById("editImagePreview");
+  if (imgPrev) {
+    imgPrev.innerHTML = p.imageData ? `<img src="${p.imageData}" style="max-height: 100px; border-radius: 4px;">` : "No image selected";
   }
-  productForm.productId.value = p.id;
-  productForm.productName.value = p.name;
-  productForm.productCategory.value = p.category;
-  productForm.productPrice.value = p.price;
-  productForm.productMarketPrice.value = p.marketPrice || p.price * 3;
-  productForm.productUnit.value = p.unit;
-  productForm.productNote.value = p.note || "";
-  productForm.productColor.value = p.color || "#ffd700";
-  window.scrollTo({ top: productForm.offsetTop - 100, behavior: 'smooth' });
+
+  modal.style.display = "flex";
+};
+
+window.closeEditModal = () => {
+  const modal = document.getElementById("editProductModal");
+  modal.style.display = "none";
+  document.getElementById("editForm").reset();
 };
 
 window.cancelImageChanges = (id) => {
@@ -1001,6 +998,7 @@ productForm?.addEventListener("submit", async (e) => {
     price: Number(productForm.productPrice.value),
     marketPrice: Number(productForm.productMarketPrice.value),
     unit: productForm.productUnit.value,
+    videoUrl: productForm.productVideo.value,
     note: productForm.productNote.value,
     color: productForm.productColor.value,
     imageData: productForm.productImageData.value
@@ -1010,6 +1008,31 @@ productForm?.addEventListener("submit", async (e) => {
     await window.db.collection("products").doc(id).set(data, { merge: true });
     productForm.reset();
     productForm.productId.value = "";
+  } catch (err) {
+    alert("Save failed: " + err.message);
+  }
+});
+
+document.getElementById("editForm")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const id = form.editProductId.value;
+  const data = {
+    name: form.editProductName.value,
+    category: form.editProductCategory.value,
+    price: Number(form.editProductPrice.value),
+    marketPrice: Number(form.editProductMarketPrice.value),
+    unit: form.editProductUnit.value,
+    videoUrl: form.editProductVideo.value,
+    note: form.editProductNote.value,
+    color: form.editProductColor.value,
+    imageData: form.editProductImageData.value
+  };
+
+  try {
+    await window.db.collection("products").doc(id).set(data, { merge: true });
+    window.closeEditModal();
+    showToast('✓ Changes Saved!');
   } catch (err) {
     alert("Save failed: " + err.message);
   }
@@ -1172,6 +1195,44 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = canvas.toDataURL("image/jpeg", 0.7);
         productForm.productImageData.value = data;
         document.querySelector("#imagePreview").innerHTML = `<img src="${data}" style="max-height: 100px; border-radius: 4px;">`;
+      };
+      img.src = re.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Edit Product Image Upload with Compression
+  document.querySelector("#editProductImageUpload")?.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (re) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+        
+        const MAX_DIM = 800;
+        if (width > MAX_DIM || height > MAX_DIM) {
+          if (width > height) {
+            height = Math.round((height * MAX_DIM) / width);
+            width = MAX_DIM;
+          } else {
+            width = Math.round((width * MAX_DIM) / height);
+            height = MAX_DIM;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        const data = canvas.toDataURL("image/jpeg", 0.7);
+        document.getElementById("editProductImageData").value = data;
+        document.querySelector("#editImagePreview").innerHTML = `<img src="${data}" style="max-height: 100px; border-radius: 4px;">`;
       };
       img.src = re.target.result;
     };

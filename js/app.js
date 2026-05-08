@@ -63,7 +63,7 @@ function applySiteSettings() {
   const heroText = document.querySelector(".hero-subcopy");
   if (heroTitle) heroTitle.textContent = siteSettings.heroTitle || siteSettings.shopName;
   if (heroText) heroText.textContent = siteSettings.heroText;
-  
+
   // Full Header Branding Architect
   const header = document.querySelector(".header");
   const navContainer = document.querySelector(".nav-container");
@@ -127,7 +127,7 @@ function applySiteSettings() {
     img.style.removeProperty("width");
     img.style.removeProperty("object-fit");
   });
-  
+
   document.querySelectorAll('a[href^="tel:"]').forEach(link => {
     link.href = `tel:+91${siteSettings.phone}`;
     link.textContent = `📞 +91 ${siteSettings.phone}`;
@@ -203,7 +203,7 @@ function renderHeroSlider() {
   slidesToRender.forEach((slide, index) => {
     const slideDiv = document.createElement("div");
     slideDiv.className = `slide ${index === 0 ? "active" : ""}`;
-    
+
     let mediaHtml = "";
     if (slide.videoData) {
       mediaHtml = `<video class="slide-video" src="${slide.videoData}" autoplay muted loop playsinline></video>`;
@@ -251,9 +251,49 @@ function currentProducts() {
   if (sort === "priceLow") filtered.sort((a, b) => a.price - b.price);
   if (sort === "priceHigh") filtered.sort((a, b) => b.price - a.price);
   if (sort === "name") filtered.sort((a, b) => a.name.localeCompare(b.name));
-  
+
   return filtered;
 }
+
+const style = document.createElement('style');
+style.textContent = `
+  .play-video-btn {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background: none;
+    border: none;
+    width: 42px;
+    height: 30px;
+    cursor: pointer;
+    z-index: 5;
+    padding: 0;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  }
+  @media (max-width: 768px) {
+    .play-video-btn {
+      top: 10px !important;
+      right: 10px !important;
+      bottom: auto !important;
+      left: auto !important;
+    }
+    .product-visual {
+      -webkit-tap-highlight-color: transparent;
+    }
+    body.modal-open #cartWidget {
+      display: none !important;
+    }
+    .mobile-only {
+      display: flex !important;
+    }
+  }
+  @media (min-width: 769px) {
+    .mobile-only {
+      display: none !important;
+    }
+  }
+`;
+document.head.appendChild(style);
 
 function renderProducts() {
   const container = document.querySelector("#productGrid");
@@ -269,7 +309,7 @@ function renderProducts() {
   const paginatedList = visibleProducts.slice(start, end);
 
   if (pCount) pCount.textContent = `Showing ${visibleProducts.length} items`;
-  
+
   // Show/Hide Pagination
   const pagWrap = document.querySelector("#pagination");
   if (pagWrap) pagWrap.style.display = visibleProducts.length > pageSize ? "flex" : "none";
@@ -278,10 +318,10 @@ function renderProducts() {
   paginatedList.forEach(product => {
     const qty = basket.get(product.id) || 0;
     const inBasket = basket.has(product.id);
-    
+
     const card = document.createElement("article");
     card.className = `product-card ${product.inStock === false ? 'is-out-of-stock' : ''}`;
-    
+
     const quantityControl = product.inStock === false
       ? `<div class="out-of-stock-label">Sold Out</div>`
       : (qty
@@ -294,14 +334,22 @@ function renderProducts() {
         `
         : `<button class="button primary" data-add="${product.id}">Add to List</button>`);
 
-    const discount = product.marketPrice > product.price 
-      ? Math.round(((product.marketPrice - product.price) / product.marketPrice) * 100) 
+    const discount = product.marketPrice > product.price
+      ? Math.round(((product.marketPrice - product.price) / product.marketPrice) * 100)
       : 0;
 
     card.innerHTML = `
-      <div class="product-visual">
+      <div class="product-visual" data-product-id="${product.id}" style="cursor:pointer;">
         ${productVisual(product)}
         ${discount > 0 ? `<div class="discount-badge">${discount}% OFF</div>` : ''}
+        ${product.videoUrl ? `
+          <button class="play-video-btn" data-video="${product.videoUrl}" aria-label="Play Video">
+            <svg viewBox="0 0 68 48" style="width:100%; height:100%; display:block;">
+              <path d="M66.52,7.74c-0.78-2.93-2.49-5.41-5.42-6.19C55.79,0.13,34,0,34,0S12.21,0.13,6.9,1.55 c-2.93,0.78-4.64,3.26-5.42,6.19C0.06,13.05,0,24,0,24s0.06,10.95,1.48,16.26c0.78,2.93,2.49,5.41,5.42,6.19 C12.21,47.87,34,48,34,48s21.79-0.13,27.1-1.55c2.93-0.78,4.64-3.26,5.42-6.19C67.94,34.95,68,24,68,24S67.94,13.05,66.52,7.74z" fill="var(--gold)"></path>
+              <polygon points="27,34 45,24 27,14" fill="#0a0c10"></polygon>
+            </svg>
+          </button>
+        ` : ''}
         
         <!-- Mobile Thumbnail Controls (Hidden on PC) -->
         <div class="mobile-thumb-controls">
@@ -362,7 +410,7 @@ function renderProducts() {
       }
     });
   }
-  
+
   const prevBtn = document.querySelector("#prevPage");
   const nextBtn = document.querySelector("#nextPage");
   if (prevBtn) prevBtn.disabled = currentPage <= 1;
@@ -440,6 +488,65 @@ function renderFloatingCart() {
   }
 }
 
+function openProductModal(id) {
+  const product = products.find(p => p.id === id);
+  if (!product) return;
+
+  const modal = document.getElementById("productModal");
+  const imgContainer = document.getElementById("modalProductImage");
+  const name = document.getElementById("modalProductName");
+  const category = document.getElementById("modalProductCategory");
+  const description = document.getElementById("modalProductDescription");
+  const priceEl = document.getElementById("modalProductPrice");
+  const unit = document.getElementById("modalProductUnit");
+  const controls = document.getElementById("modalProductControls");
+
+  name.textContent = product.name;
+  category.textContent = product.category;
+  description.textContent = product.note || "No description available.";
+  priceEl.textContent = price(product.price);
+  unit.textContent = ` / ${product.unit || "unit"}`;
+
+  imgContainer.innerHTML = productVisual(product);
+  const img = imgContainer.querySelector("img");
+  if (img) {
+    img.style.maxWidth = "100%";
+    img.style.maxHeight = "100%";
+    img.style.objectFit = "contain";
+  }
+
+  const qty = basket.get(product.id) || 0;
+  
+  // Inject video button next to category
+  const videoContainer = document.getElementById("modalVideoContainer");
+  if (product.videoUrl) {
+    videoContainer.innerHTML = `
+      <button class="mobile-only" data-video="${product.videoUrl}" style="background:none; border:none; width:36px; height:24px; cursor:pointer; padding:0; display:flex; align-items:center; justify-content:center;" aria-label="Play Video">
+        <svg viewBox="0 0 68 48" style="width:100%; height:100%; display:block;">
+          <path d="M66.52,7.74c-0.78-2.93-2.49-5.41-5.42-6.19C55.79,0.13,34,0,34,0S12.21,0.13,6.9,1.55 c-2.93,0.78-4.64,3.26-5.42,6.19C0.06,13.05,0,24,0,24s0.06,10.95,1.48,16.26c0.78,2.93,2.49,5.41,5.42,6.19 C12.21,47.87,34,48,34,48s21.79-0.13,27.1-1.55c2.93-0.78,4.64-3.26,5.42-6.19C67.94,34.95,68,24,68,24S67.94,13.05,66.52,7.74z" fill="var(--gold)"></path>
+          <polygon points="27,34 45,24 27,14" fill="#161b22"></polygon>
+        </svg>
+      </button>`;
+  } else {
+    videoContainer.innerHTML = "";
+  }
+
+  controls.innerHTML = product.inStock === false
+    ? `<div class="out-of-stock-label">Sold Out</div>`
+    : (qty
+      ? `
+        <div class="stepper" style="width:100%; justify-content:space-between;">
+          <button type="button" data-minus="${product.id}">-</button>
+          <span class="stepper-value">${qty}</span>
+          <button type="button" data-plus="${product.id}">+</button>
+        </div>
+      `
+      : `<button class="button primary" data-add="${product.id}" style="width:100%;">Add to List</button>`);
+
+  document.body.classList.add('modal-open');
+  modal.style.display = "flex";
+}
+
 // --- INTERACTIONS ---
 function addToBasket(id) {
   basket.set(id, 1);
@@ -487,11 +594,68 @@ document.addEventListener("click", e => {
   const add = e.target.closest("[data-add]");
   const plus = e.target.closest("[data-plus]");
   const minus = e.target.closest("[data-minus]");
+  const playVideo = e.target.closest("[data-video]");
+  const closeBtn = e.target.closest("#closeVideoModal");
+  const modal = document.getElementById("videoModal");
+
+  if (add) {
+    addToBasket(add.dataset.add);
+    const pModal = document.getElementById("productModal");
+    if (pModal && pModal.style.display === "flex") openProductModal(add.dataset.add);
+  }
+  if (plus) {
+    changeQuantity(plus.dataset.plus, 1);
+    const pModal = document.getElementById("productModal");
+    if (pModal && pModal.style.display === "flex") openProductModal(plus.dataset.plus);
+  }
+  if (minus) {
+    changeQuantity(minus.dataset.minus, -1);
+    const pModal = document.getElementById("productModal");
+    if (pModal && pModal.style.display === "flex") openProductModal(minus.dataset.minus);
+  }
   
-  if (add) addToBasket(add.dataset.add);
-  if (plus) changeQuantity(plus.dataset.plus, 1);
-  if (minus) changeQuantity(minus.dataset.minus, -1);
+  const visual = e.target.closest("[data-product-id]");
+  const isInteractive = e.target.closest("button") || e.target.closest(".play-video-btn") || e.target.closest("[data-add]") || e.target.closest("[data-plus]") || e.target.closest("[data-minus]");
   
+  if (visual && !isInteractive) {
+    const id = visual.dataset.productId;
+    openProductModal(id);
+  }
+
+  const closeProductBtn = e.target.closest("#closeProductModal");
+  const pModal = document.getElementById("productModal");
+  if (closeProductBtn || (pModal && e.target === pModal)) {
+    if (pModal) {
+      pModal.style.display = "none";
+      document.body.classList.remove('modal-open');
+    }
+  }
+
+  if (playVideo) {
+    e.stopPropagation();
+    const url = playVideo.dataset.video;
+    const player = document.getElementById("videoPlayer");
+
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
+    const match = url.match(regExp);
+    const videoId = (match && match[2].length === 11) ? match[2] : null;
+
+    if (videoId) {
+      player.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&vq=hd720`;
+      modal.style.display = "flex";
+    } else {
+      alert("Invalid YouTube URL");
+    }
+  }
+
+  if (closeBtn || (modal && e.target === modal)) {
+    if (modal) {
+      const player = document.getElementById("videoPlayer");
+      modal.style.display = "none";
+      player.src = "";
+    }
+  }
+
   const shortcut = e.target.closest("[data-category-shortcut]");
   if (shortcut) {
     const select = document.querySelector("#category");
@@ -501,7 +665,7 @@ document.addEventListener("click", e => {
     }
   }
 
-    // Cart toggle handled at bottom of file via specialized listener
+  // Cart toggle handled at bottom of file via specialized listener
 });
 
 document.addEventListener("input", e => {
@@ -532,16 +696,16 @@ function startSyncs() {
   window.db.collection("products").orderBy("name").onSnapshot(snap => {
     if (!snap.empty) {
       const newProducts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      
+
       // Update state
       products = newProducts;
-      
+
       // Update Cache for next visit
       localStorage.setItem("jey_products_cache", JSON.stringify(newProducts));
       localStorage.setItem("jey_products_timestamp", Date.now());
-      
+
       console.log("📡 Firestore Synced & Cache Updated");
-      
+
       fillCategories();
       renderProducts();
     } else {
@@ -658,7 +822,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Toggle Cart Popover
   const cartToggle = document.querySelector("#cartToggle");
   const cartPopover = document.querySelector("#cartPopover");
-  
+
   cartToggle?.addEventListener("click", (e) => {
     e.stopPropagation();
     cartPopover?.classList.toggle("active");

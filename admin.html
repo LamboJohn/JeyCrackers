@@ -140,6 +140,10 @@
             <input id="productUnit" placeholder="10 pcs" required>
           </div>
           <div>
+            <label for="productVideo">YouTube Video URL (Optional)</label>
+            <input id="productVideo" placeholder="https://www.youtube.com/watch?v=...">
+          </div>
+          <div>
             <label for="productImageUpload">Product image</label>
             <input id="productImageUpload" type="file" accept="image/*">
             <input id="productImageData" type="hidden">
@@ -376,6 +380,75 @@
     </div>
 
     <img id="pdfLogo" src="images/jeycrackers-j-edited.png" style="display:none;">
+
+    <!-- Edit Product Modal -->
+    <div id="editProductModal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.85); backdrop-filter:blur(6px); align-items:center; justify-content:center; overflow-y:auto; padding:20px;">
+      <div style="background:#161b22; border:1px solid #30363d; border-radius:16px; padding:24px; max-width:650px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,0.6); position:relative;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; border-bottom:1px solid #30363d; padding-bottom:16px;">
+          <h3 style="color:var(--gold); font-family:var(--font-display); margin:0; font-size:1.4rem; font-weight:700;">Edit Product</h3>
+          <button onclick="window.closeEditModal()" style="background:none; border:none; color:#fff; font-size:1.8rem; cursor:pointer; opacity:0.6; transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">&times;</button>
+        </div>
+        
+        <form id="editForm" class="admin-form" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:20px;">
+          <input type="hidden" id="editProductId">
+          
+          <div style="grid-column: span 2;">
+            <label for="editProductName" style="display:block; margin-bottom:8px; color:rgba(255,255,255,0.7); font-size:0.85rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Product Name</label>
+            <input id="editProductName" required style="width:100%; padding:12px; border-radius:8px; background:#0a0c10; border:1px solid #30363d; color:#fff; font-family:inherit; font-size:0.95rem; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='#30363d'">
+          </div>
+          
+          <div>
+            <label for="editProductCategory" style="display:block; margin-bottom:8px; color:rgba(255,255,255,0.7); font-size:0.85rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Category</label>
+            <input id="editProductCategory" list="categoryOptions" required style="width:100%; padding:12px; border-radius:8px; background:#0a0c10; border:1px solid #30363d; color:#fff; font-family:inherit; font-size:0.95rem; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='#30363d'">
+          </div>
+          
+          <div>
+            <label for="editProductUnit" style="display:block; margin-bottom:8px; color:rgba(255,255,255,0.7); font-size:0.85rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Unit</label>
+            <input id="editProductUnit" placeholder="10 pcs" required style="width:100%; padding:12px; border-radius:8px; background:#0a0c10; border:1px solid #30363d; color:#fff; font-family:inherit; font-size:0.95rem; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='#30363d'">
+          </div>
+          
+          <div>
+            <label for="editProductPrice" style="display:block; margin-bottom:8px; color:rgba(255,255,255,0.7); font-size:0.85rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Offer Price (Rs)</label>
+            <input id="editProductPrice" type="number" min="0" step="1" required style="width:100%; padding:12px; border-radius:8px; background:#0a0c10; border:1px solid #30363d; color:#fff; font-family:inherit; font-size:0.95rem; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='#30363d'">
+          </div>
+          
+          <div>
+            <label for="editProductMarketPrice" style="display:block; margin-bottom:8px; color:rgba(255,255,255,0.7); font-size:0.85rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Market Price (Rs)</label>
+            <input id="editProductMarketPrice" type="number" min="0" step="1" required style="width:100%; padding:12px; border-radius:8px; background:#0a0c10; border:1px solid #30363d; color:#fff; font-family:inherit; font-size:0.95rem; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='#30363d'">
+          </div>
+          
+          <div style="grid-column: span 2;">
+            <label for="editProductVideo" style="display:block; margin-bottom:8px; color:rgba(255,255,255,0.7); font-size:0.85rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">YouTube Video URL</label>
+            <input id="editProductVideo" placeholder="https://www.youtube.com/watch?v=..." style="width:100%; padding:12px; border-radius:8px; background:#0a0c10; border:1px solid #30363d; color:#fff; font-family:inherit; font-size:0.95rem; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='#30363d'">
+          </div>
+          
+          <div>
+            <label for="editProductImageUpload" style="display:block; margin-bottom:8px; color:rgba(255,255,255,0.7); font-size:0.85rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Product Image</label>
+            <input id="editProductImageUpload" type="file" accept="image/*" style="width:100%; color:rgba(255,255,255,0.5); font-size:0.85rem;">
+            <input id="editProductImageData" type="hidden">
+          </div>
+          
+          <div>
+            <label for="editProductColor" style="display:block; margin-bottom:8px; color:rgba(255,255,255,0.7); font-size:0.85rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Fallback Color</label>
+            <input id="editProductColor" type="color" value="#ff4500" style="width:100%; height:42px; padding:0; border:1px solid #30363d; border-radius:8px; background:#0a0c10; cursor:pointer;">
+          </div>
+          
+          <div style="grid-column: span 2; display:flex; justify-content:center; background:rgba(0,0,0,0.2); padding:15px; border-radius:8px; border:1px dashed #30363d;">
+            <div id="editImagePreview" style="width:120px; height:120px; background:#0a0c10; display:flex; align-items:center; justify-content:center; border:1px solid #30363d; border-radius:8px; overflow:hidden;">No image</div>
+          </div>
+          
+          <div style="grid-column: span 2;">
+            <label for="editProductNote" style="display:block; margin-bottom:8px; color:rgba(255,255,255,0.7); font-size:0.85rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Short Note (Optional)</label>
+            <textarea id="editProductNote" rows="2" style="width:100%; padding:12px; border-radius:8px; background:#0a0c10; border:1px solid #30363d; color:#fff; font-family:inherit; font-size:0.95rem; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='#30363d'"></textarea>
+          </div>
+          
+          <div style="grid-column: span 2; display:flex; gap:12px; justify-content:flex-end; margin-top:10px; border-top:1px solid #30363d; padding-top:16px;">
+            <button class="button ghost" type="button" onclick="window.closeEditModal()" style="padding:10px 20px; border-radius:8px; border:1px solid #30363d; background:transparent; color:#fff; cursor:pointer; font-weight:600; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Cancel</button>
+            <button class="button primary" type="submit" style="padding:10px 20px; border-radius:8px; border:none; background:var(--gold); color:#000; font-weight:700; cursor:pointer; transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
