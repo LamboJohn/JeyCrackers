@@ -3887,5 +3887,12 @@ input:focus + .admin-toggle-slider { box-shadow: 0 0 1px #22c55e; }
   }
 }
 
+/* Hide Home link in desktop view to save space */
+@media (min-width: 641px) {
+  .nav-links a[href="index.html"] {
+    display: none !important;
+  }
+}
+
 
 
