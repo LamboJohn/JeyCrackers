@@ -949,10 +949,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const firstItem = trustStrip.firstElementChild;
     if (firstItem && trustStrip.children.length > 1) {
       const clone = firstItem.cloneNode(true);
+      clone.classList.add('trust-clone-item');
       trustStrip.appendChild(clone);
     }
     
     let scrollInterval = setInterval(() => {
+      // Don't auto-scroll on desktop where it's a grid
+      if (window.innerWidth > 640) return;
+      
       const itemWidth = trustStrip.clientWidth;
       if (itemWidth === 0) return;
       

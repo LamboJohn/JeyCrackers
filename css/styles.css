@@ -4538,3 +4538,10 @@ input:focus+.admin-toggle-slider {
     color: var(--muted) !important;
   }
 }
+
+/* Hide cloned trust item on desktop so it doesn't break the grid */
+@media (min-width: 641px) {
+  .trust-clone-item {
+    display: none !important;
+  }
+}
