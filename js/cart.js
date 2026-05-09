@@ -469,7 +469,9 @@ function initMobileMenu() {
       document.documentElement.classList.toggle("no-scroll", isOpen);
       document.body.classList.toggle("no-scroll", isOpen);
       if (backdrop) backdrop.style.display = isOpen ? "block" : "none";
-      hamburger.classList.toggle("hidden", isOpen);
+      hamburger.classList.toggle("active", isOpen);
+      hamburger.setAttribute("aria-expanded", String(isOpen));
+      hamburger.setAttribute("aria-label", isOpen ? "Close navigation" : "Open navigation");
     }
 
     hamburger.addEventListener("click", () => {

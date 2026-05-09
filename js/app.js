@@ -2,6 +2,7 @@
 let products = defaultProducts;
 let currentPage = 1;
 let pageSize = 40;
+let lastQuantityPulseId = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   const ps = document.querySelector("#pageSize");
@@ -48,6 +49,52 @@ const basket = new Map(Array.isArray(basketData) ? basketData : []);
 
 function saveBasket() {
   localStorage.setItem("crackerBasket", JSON.stringify([...basket.entries()]));
+}
+
+function lockBackgroundScroll() {
+  const y = window.scrollY || document.documentElement.scrollTop || 0;
+  document.documentElement.classList.add("no-scroll");
+  document.body.classList.add("no-scroll", "modal-open");
+
+  if (!document.body.dataset.scrollLockY) {
+    document.body.dataset.scrollLockY = String(y);
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${y}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    document.body.style.width = "100%";
+  }
+}
+
+function unlockBackgroundScrollIfClear() {
+  const productModal = document.getElementById("productModal");
+  const videoModal = document.getElementById("videoModal");
+  const cartPopover = document.getElementById("cartPopover");
+  const navMenu = document.getElementById("navMenu");
+  const shouldStayLocked =
+    (productModal && productModal.style.display === "flex") ||
+    (videoModal && videoModal.style.display === "flex") ||
+    (cartPopover && cartPopover.classList.contains("active")) ||
+    (navMenu && navMenu.classList.contains("active"));
+
+  if (shouldStayLocked) return;
+
+  const y = Number(document.body.dataset.scrollLockY || 0);
+  const previousScrollBehavior = document.documentElement.style.scrollBehavior;
+  document.documentElement.style.scrollBehavior = "auto";
+  document.documentElement.classList.remove("no-scroll");
+  document.body.classList.remove("no-scroll", "modal-open");
+  document.body.style.position = "";
+  document.body.style.top = "";
+  document.body.style.left = "";
+  document.body.style.right = "";
+  document.body.style.width = "";
+  delete document.body.dataset.scrollLockY;
+  window.scrollTo(0, y);
+  requestAnimationFrame(() => {
+    window.scrollTo(0, y);
+    document.documentElement.style.scrollBehavior = previousScrollBehavior;
+  });
 }
 
 // --- UTILS ---
@@ -321,6 +368,7 @@ function renderProducts() {
   paginatedList.forEach(product => {
     const qty = basket.get(product.id) || 0;
     const inBasket = basket.has(product.id);
+    const pulseClass = lastQuantityPulseId === product.id ? " qty-control-pulse" : "";
 
     const card = document.createElement("article");
     card.className = `product-card ${product.inStock === false ? 'is-out-of-stock' : ''}`;
@@ -356,11 +404,11 @@ function renderProducts() {
         
         <!-- Mobile Thumbnail Controls (Hidden on PC) -->
         <div class="mobile-thumb-controls">
-          ${product.inStock !== false && qty === 0 ? `<button class="thumbnail-add-btn" data-add="${product.id}">+</button>` : ''}
+          ${product.inStock !== false && qty === 0 ? `<button class="thumbnail-add-btn${pulseClass}" data-add="${product.id}">+</button>` : ''}
           ${qty > 0 ? `
-            <div class="thumbnail-stepper">
+            <div class="thumbnail-stepper${pulseClass}">
               <button type="button" data-minus="${product.id}">-</button>
-              <span class="qty-val">${qty}</span>
+              <span class="qty-val${pulseClass}">${qty}</span>
               <button type="button" data-plus="${product.id}">+</button>
             </div>
           ` : ''}
@@ -392,6 +440,7 @@ function renderProducts() {
     `;
     container.append(card);
   });
+  lastQuantityPulseId = null;
 
   // Update Pagination UI
   const pageNumContainer = document.querySelector("#pageNumber");
@@ -546,12 +595,13 @@ function openProductModal(id) {
       `
       : `<button class="button primary" data-add="${product.id}" style="width:100%;">Add to List</button>`);
 
-  document.body.classList.add('modal-open');
+  lockBackgroundScroll();
   modal.style.display = "flex";
 }
 
 // --- INTERACTIONS ---
 function addToBasket(id) {
+  lastQuantityPulseId = id;
   basket.set(id, 1);
   saveBasket();
   renderProducts();
@@ -559,6 +609,7 @@ function addToBasket(id) {
 }
 
 function changeQuantity(id, delta) {
+  lastQuantityPulseId = id;
   const current = basket.get(id) || 0;
   const next = current + delta;
   if (next <= 0) basket.delete(id);
@@ -593,7 +644,9 @@ function initMobileMenu() {
       document.documentElement.classList.toggle("no-scroll", isOpen);
       document.body.classList.toggle("no-scroll", isOpen);
       if (backdrop) backdrop.style.display = isOpen ? "block" : "none";
-      hamburger.classList.toggle("hidden", isOpen);
+      hamburger.classList.toggle("active", isOpen);
+      hamburger.setAttribute("aria-expanded", String(isOpen));
+      hamburger.setAttribute("aria-label", isOpen ? "Close navigation" : "Open navigation");
     }
 
     hamburger.addEventListener("click", () => {
@@ -695,7 +748,7 @@ document.addEventListener("click", e => {
   if (closeProductBtn || (pModal && e.target === pModal)) {
     if (pModal) {
       pModal.style.display = "none";
-      document.body.classList.remove('modal-open');
+      unlockBackgroundScrollIfClear();
     }
   }
 
@@ -711,6 +764,7 @@ document.addEventListener("click", e => {
     if (videoId) {
       player.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&vq=hd720`;
       modal.style.display = "flex";
+      lockBackgroundScroll();
     } else {
       alert("Invalid YouTube URL");
     }
@@ -721,6 +775,7 @@ document.addEventListener("click", e => {
       const player = document.getElementById("videoPlayer");
       modal.style.display = "none";
       player.src = "";
+      unlockBackgroundScrollIfClear();
     }
   }
 
@@ -877,7 +932,7 @@ function initHeaderScroll() {
 function initReveal() {
   const reveals = document.querySelectorAll(".reveal");
   const observer = new IntersectionObserver(entries => {
-    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("active"); });
+    reveals.forEach(r => observer.observe(r));
   }, { threshold: 0.1 });
   reveals.forEach(r => observer.observe(r));
 }

@@ -552,9 +552,7 @@ function getCropCanvas() { return document.getElementById('cropCanvas'); }
 function drawCrop() {
   const canvas = getCropCanvas();
   if (!canvas || !cropState.img) return;
-  const size = canvas.offsetWidth;
-  canvas.width  = size;
-  canvas.height = size;
+  const size = canvas.width;
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, size, size);
   const w = cropState.img.naturalWidth  * cropState.zoom;
@@ -568,9 +566,18 @@ function clampOffset() {
   const size = canvas.width;
   const w = cropState.img.naturalWidth  * cropState.zoom;
   const h = cropState.img.naturalHeight * cropState.zoom;
-  // Ensure the image always covers the entire canvas
-  cropState.offsetX = Math.min(0, Math.max(size - w, cropState.offsetX));
-  cropState.offsetY = Math.min(0, Math.max(size - h, cropState.offsetY));
+
+  if (w >= size) {
+    cropState.offsetX = Math.min(0, Math.max(size - w, cropState.offsetX));
+  } else {
+    cropState.offsetX = Math.min(size - w, Math.max(0, cropState.offsetX));
+  }
+
+  if (h >= size) {
+    cropState.offsetY = Math.min(0, Math.max(size - h, cropState.offsetY));
+  } else {
+    cropState.offsetY = Math.min(size - h, Math.max(0, cropState.offsetY));
+  }
 }
 
 function openCropModal(id, file) {
@@ -590,7 +597,7 @@ function openCropModal(id, file) {
       // Minimum zoom = cover the square canvas
       const minZ = size / Math.min(img.naturalWidth, img.naturalHeight);
       cropState.zoom    = minZ;
-      cropState.minZoom = minZ;
+      cropState.minZoom = minZ * 0.2; // Allow zooming out up to 5x smaller than fill size
 
       // Center image
       const w = img.naturalWidth  * cropState.zoom;
@@ -622,16 +629,14 @@ window.applyCrop = () => {
   out.height = 800;
   const ctx = out.getContext('2d');
   const scale = 800 / size;
-  ctx.drawImage(
-    cropState.img,
-    -cropState.offsetX / cropState.zoom,
-    -cropState.offsetY / cropState.zoom,
-    cropState.img.naturalWidth,
-    cropState.img.naturalHeight,
-    0, 0,
-    cropState.img.naturalWidth  * cropState.zoom * scale,
-    cropState.img.naturalHeight * cropState.zoom * scale
-  );
+  
+  ctx.fillStyle = "#0a0c10"; // Fill background with same color as crop container
+  ctx.fillRect(0, 0, 800, 800);
+  
+  const w = cropState.img.naturalWidth  * cropState.zoom * scale;
+  const h = cropState.img.naturalHeight * cropState.zoom * scale;
+  ctx.drawImage(cropState.img, cropState.offsetX * scale, cropState.offsetY * scale, w, h);
+  
   const dataUrl = out.toDataURL('image/jpeg', 0.82);
   pendingImages.set(cropState.id, dataUrl);
   window.closeCropModal();
@@ -698,6 +703,38 @@ document.addEventListener('DOMContentLoaded', () => {
     drawCrop();
   }, { passive: false });
 });
+
+window.zoomIn = () => {
+  const canvas = getCropCanvas();
+  if (!canvas || !cropState.img) return;
+  const size = canvas.width;
+  const pivotX = size / 2;
+  const pivotY = size / 2;
+  const delta = 1.1; // Zoom in by 10%
+  const newZoom = Math.max(cropState.minZoom, cropState.zoom * delta);
+  const ratio = newZoom / cropState.zoom;
+  cropState.offsetX = pivotX + (cropState.offsetX - pivotX) * ratio;
+  cropState.offsetY = pivotY + (cropState.offsetY - pivotY) * ratio;
+  cropState.zoom = newZoom;
+  clampOffset();
+  drawCrop();
+};
+
+window.zoomOut = () => {
+  const canvas = getCropCanvas();
+  if (!canvas || !cropState.img) return;
+  const size = canvas.width;
+  const pivotX = size / 2;
+  const pivotY = size / 2;
+  const delta = 0.9; // Zoom out by 10%
+  const newZoom = Math.max(cropState.minZoom, cropState.zoom * delta);
+  const ratio = newZoom / cropState.zoom;
+  cropState.offsetX = pivotX + (cropState.offsetX - pivotX) * ratio;
+  cropState.offsetY = pivotY + (cropState.offsetY - pivotY) * ratio;
+  cropState.zoom = newZoom;
+  clampOffset();
+  drawCrop();
+};
 
 window.handleImageSelect = (id, input) => {
   const file = input.files[0];

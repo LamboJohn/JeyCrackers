@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jey Crackers - Admin Dashboard</title>
-    <link rel="stylesheet" href="css/styles.css?v=45">
+    <link rel="stylesheet" href="css/styles.css?v=50">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Outfit:wght@300;400;600;700;800;900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
@@ -59,7 +59,7 @@
       <nav class="nav">
         <a href="index.html" class="brand">
           <img src="images/jeycrackers-j-edited.png" alt="Jey Crackers" class="brand-logo">
-          <span class="brand-wordmark">JEYCRACKERS</span>
+          <img src="images/jeycrackers-text.png" alt="JeyCrackers Text" class="brand-text-image">
         </a>
         <div class="nav-links">
           <a href="index.html">
@@ -372,9 +372,15 @@
           <canvas id="cropCanvas" style="display:block; width:100%; height:100%;"></canvas>
           <div id="cropOverlay" style="position:absolute; inset:0; box-shadow:0 0 0 9999px rgba(0,0,0,0.55); border:2px solid rgba(255,215,0,0.8); pointer-events:none; border-radius:4px;"></div>
         </div>
-        <div style="display:flex; gap:12px; margin-top:16px; justify-content:flex-end;">
-          <button onclick="window.closeCropModal()" class="button sm ghost">Cancel</button>
-          <button onclick="window.applyCrop()" class="button sm primary" style="background:var(--gold); color:#000; font-weight:700;">✔ Use Cropped Image</button>
+        <div style="display:flex; gap:12px; margin-top:16px; justify-content:space-between; align-items:center;">
+          <div style="display:flex; gap:8px;">
+            <button type="button" onclick="window.zoomOut()" class="button sm ghost" style="padding:4px 12px; font-size:1.2rem; min-width:36px;" title="Zoom Out">-</button>
+            <button type="button" onclick="window.zoomIn()" class="button sm ghost" style="padding:4px 12px; font-size:1.2rem; min-width:36px;" title="Zoom In">+</button>
+          </div>
+          <div style="display:flex; gap:12px;">
+            <button type="button" onclick="window.closeCropModal()" class="button sm ghost">Cancel</button>
+            <button type="button" onclick="window.applyCrop()" class="button sm primary" style="background:var(--gold); color:#000; font-weight:700;">✔ Use Cropped Image</button>
+          </div>
         </div>
       </div>
     </div>
@@ -459,6 +465,6 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-    <script src="js/admin.js?v=45"></script>
+    <script src="js/admin.js?v=53"></script>
 </body>
 </html>
