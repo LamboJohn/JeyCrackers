@@ -905,7 +905,7 @@ textarea:focus {
   margin-bottom: 16px;
 }
 
-.section-heading h2 {
+.section-heading h2, .section-heading h1 {
   margin: 0;
   font-family: Montserrat, Poppins, sans-serif;
   font-size: clamp(1.85rem, 3vw, 2.75rem);
@@ -1626,7 +1626,7 @@ footer {
   overflow-x: hidden;
 }
 
-.section-heading h2 {
+.section-heading h2, .section-heading h1 {
   font-family: 'Cinzel', serif;
   font-size: 2rem;
   font-weight: 800;
@@ -4493,5 +4493,48 @@ input:focus+.admin-toggle-slider {
     letter-spacing: 0.06em !important;
     background: rgba(255, 255, 255, 0.07) !important;
     border: 1px solid rgba(255, 255, 255, 0.13) !important;
+  }
+}
+
+/* Force products section heading to be visible on mobile and make trust strip compact */
+@media (max-width: 640px) {
+  .products-section .section-heading {
+    display: flex !important;
+  }
+  
+  .trust-strip {
+    display: flex !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory !important;
+    gap: 0 !important;
+    padding: 12px 0 !important;
+    margin: 15px 0 !important;
+    justify-content: flex-start !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  .trust-strip::-webkit-scrollbar {
+    display: none !important;
+  }
+  
+  .trust-item {
+    flex: 0 0 100% !important;
+    scroll-snap-align: center !important;
+    text-align: center;
+    padding: 12px 20px !important;
+    background: none !important;
+    border: none !important;
+  }
+  
+  .trust-item strong {
+    font-size: 0.9rem !important;
+    display: block !important;
+    margin-bottom: 4px !important;
+  }
+  
+  .trust-item span {
+    font-size: 0.75rem !important;
+    display: block !important;
+    color: var(--muted) !important;
   }
 }

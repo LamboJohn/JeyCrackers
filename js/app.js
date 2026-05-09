@@ -942,6 +942,49 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeApp();
   startSyncs();
 
+  // Auto-scroll Trust Strip on mobile
+  const trustStrip = document.querySelector('.trust-strip');
+  if (trustStrip) {
+    // Clone first item and append to end for seamless loop
+    const firstItem = trustStrip.firstElementChild;
+    if (firstItem && trustStrip.children.length > 1) {
+      const clone = firstItem.cloneNode(true);
+      trustStrip.appendChild(clone);
+    }
+    
+    let scrollInterval = setInterval(() => {
+      const itemWidth = trustStrip.clientWidth;
+      if (itemWidth === 0) return;
+      
+      const totalItems = trustStrip.children.length;
+      let nextScroll = trustStrip.scrollLeft + itemWidth;
+      
+      // Temporarily disable scroll snap to allow smooth JS scrolling
+      trustStrip.style.scrollSnapType = 'none';
+      
+      trustStrip.scrollTo({
+        left: nextScroll,
+        behavior: 'smooth'
+      });
+      
+      // If we just scrolled to the cloned item (the last one)
+      if (nextScroll >= (totalItems - 1) * itemWidth - 10) {
+        setTimeout(() => {
+          trustStrip.style.scrollSnapType = 'none';
+          trustStrip.scrollLeft = 0; // Instant jump back to start
+          trustStrip.style.scrollSnapType = 'x mandatory';
+        }, 600); // Wait for smooth scroll to finish
+      } else {
+        setTimeout(() => {
+          trustStrip.style.scrollSnapType = 'x mandatory';
+        }, 600);
+      }
+    }, 5000); // Reduced speed (5 seconds instead of 3)
+    
+    // Pause on touch
+    trustStrip.addEventListener('touchstart', () => clearInterval(scrollInterval));
+  }
+
   // Toggle Cart Popover
   const cartToggle = document.querySelector("#cartToggle");
   const cartPopover = document.querySelector("#cartPopover");
