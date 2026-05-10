@@ -434,6 +434,13 @@ function renderProducts() {
   if (pagWrap) pagWrap.style.display = visibleProducts.length > pageSize ? "flex" : "none";
 
   container.innerHTML = "";
+  if (paginatedList.length === 0) {
+    container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; opacity: 0.7;">
+      <p style="font-size: 1.2rem; margin-bottom: 10px;">✨ New collection arriving soon!</p>
+      <p style="font-size: 0.9rem;">Please check back in a few minutes or contact us directly.</p>
+    </div>`;
+    return;
+  }
   paginatedList.forEach(product => {
     const qty = basket.get(product.id) || 0;
     const inBasket = basket.has(product.id);

@@ -6,18 +6,20 @@ const firebaseConfig = {
   storageBucket: "jeycrackers-e9b98.firebasestorage.app",
   messagingSenderId: "689824423228",
   appId: "1:689824423228:web:f5dd89be7c8021f27e5239",
-  measurementId: "G-V82FDWB37W"
+  measurementId: "G-SB7TVLB7HY"
 };
 
 // Initialize Firebase using compat SDK
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
+const analytics = firebase.analytics();
 
 // Make them available globally
 window.db = db;
 window.auth = auth;
 window.firebase = firebase;
+window.analytics = analytics;
 
 // --- BEST BALANCED SETUP: ENABLE OFFLINE PERSISTENCE ---
 window.db.enablePersistence({ synchronizeTabs: true })
