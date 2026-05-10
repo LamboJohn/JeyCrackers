@@ -97,8 +97,36 @@
       <section class="admin-stats" aria-label="Admin summary">
         <div><strong id="statProducts">0</strong><span>Products</span></div>
         <div><strong id="statCategories">0</strong><span>Categories</span></div>
-        <div><strong id="statEnquiries">0</strong><span>Enquiries</span></div>
+        <div><strong id="statEnquiries">0</strong><span>Active Enquiries</span></div>
       </section>
+
+      <!-- New Sales Insights Section -->
+      <div id="insightsPanel" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:20px; margin-bottom:30px;">
+        <div class="admin-panel" style="background:rgba(0,0,0,0.2); border:1px solid rgba(255,215,0,0.1); padding:20px; border-radius:12px; display:block;">
+          <h3 style="color:var(--gold); font-size:1rem; margin-bottom:15px; display:flex; align-items:center; gap:8px;">🔥 Top 5 Best Sellers</h3>
+          <div id="topSellersList" style="display:flex; flex-direction:column; gap:10px;">
+            <p style="color:var(--muted); font-size:0.85rem;">Calculating sales data...</p>
+          </div>
+        </div>
+        
+        <div class="admin-panel" style="background:rgba(0,0,0,0.2); border:1px solid rgba(255,215,0,0.1); padding:20px; border-radius:12px; display:block;">
+          <h3 style="color:var(--gold); font-size:1rem; margin-bottom:15px; display:flex; align-items:center; gap:8px;">💰 Revenue Breakdown</h3>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+            <div>
+              <span style="display:block; font-size:0.75rem; color:var(--muted); text-transform:uppercase;">Today</span>
+              <strong id="revenueToday" style="font-size:1.4rem; color:#fff;">Rs 0</strong>
+            </div>
+            <div>
+              <span style="display:block; font-size:0.75rem; color:var(--muted); text-transform:uppercase;">This Week</span>
+              <strong id="revenueWeek" style="font-size:1.4rem; color:#fff;">Rs 0</strong>
+            </div>
+          </div>
+          <div style="margin-top:15px; padding-top:15px; border-top:1px solid rgba(255,255,255,0.05);">
+             <span style="display:block; font-size:0.75rem; color:var(--muted); text-transform:uppercase;">Total (All Time)</span>
+             <strong id="revenueTotal" style="font-size:1.6rem; color:var(--gold);">Rs 0</strong>
+          </div>
+        </div>
+      </div>
 
       <section class="admin-tabs" aria-label="Admin sections">
         <button class="admin-tab active" type="button" data-admin-tab="products">Products</button>
@@ -161,6 +189,10 @@
           <div>
             <label for="productUnit">Unit</label>
             <input id="productUnit" placeholder="10 pcs" required>
+          </div>
+          <div>
+            <label for="productStock">Initial Stock Quantity</label>
+            <input id="productStock" type="number" min="0" value="100" required>
           </div>
           <div>
             <label for="productVideo">YouTube Video URL (Optional)</label>
@@ -434,6 +466,11 @@
           <div>
             <label for="editProductUnit" style="display:block; margin-bottom:8px; color:rgba(255,255,255,0.7); font-size:0.85rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Unit</label>
             <input id="editProductUnit" placeholder="10 pcs" required style="width:100%; padding:12px; border-radius:8px; background:#0a0c10; border:1px solid #30363d; color:#fff; font-family:inherit; font-size:0.95rem; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='#30363d'">
+          </div>
+
+          <div>
+            <label for="editProductStock" style="display:block; margin-bottom:8px; color:rgba(255,255,255,0.7); font-size:0.85rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Stock Quantity</label>
+            <input id="editProductStock" type="number" min="0" required style="width:100%; padding:12px; border-radius:8px; background:#0a0c10; border:1px solid #30363d; color:#fff; font-family:inherit; font-size:0.95rem; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='#30363d'">
           </div>
           
           <div>

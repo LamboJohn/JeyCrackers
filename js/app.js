@@ -447,9 +447,10 @@ function renderProducts() {
     const pulseClass = lastQuantityPulseId === product.id ? " qty-control-pulse" : "";
 
     const card = document.createElement("article");
-    card.className = `product-card ${product.inStock === false ? 'is-out-of-stock' : ''}`;
+    const isOutOfStock = product.inStock === false || (product.stock !== undefined && product.stock <= 0);
+    card.className = `product-card ${isOutOfStock ? 'is-out-of-stock' : ''}`;
 
-    const quantityControl = product.inStock === false
+    const quantityControl = isOutOfStock
       ? `<div class="out-of-stock-label">Sold Out</div>`
       : (qty
         ? `
@@ -480,7 +481,7 @@ function renderProducts() {
         
         <!-- Mobile Thumbnail Controls (Hidden on PC) -->
         <div class="mobile-thumb-controls">
-          ${product.inStock !== false && qty === 0 ? `<button class="thumbnail-add-btn${pulseClass}" data-add="${product.id}">+</button>` : ''}
+          ${!isOutOfStock && qty === 0 ? `<button class="thumbnail-add-btn${pulseClass}" data-add="${product.id}">+</button>` : ''}
           ${qty > 0 ? `
             <div class="thumbnail-stepper${pulseClass}">
               <button type="button" data-minus="${product.id}">-</button>
@@ -490,7 +491,7 @@ function renderProducts() {
           ` : ''}
         </div>
 
-        ${product.inStock === false ? `<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-15deg); background:rgba(0,0,0,0.8); color:#fff; padding:5px 15px; border:2px solid #fff; font-weight:900; z-index:20; white-space:nowrap; pointer-events:none;">OUT OF STOCK</div>` : ''}
+        ${isOutOfStock ? `<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-15deg); background:rgba(0,0,0,0.8); color:#fff; padding:5px 15px; border:2px solid #fff; font-weight:900; z-index:20; white-space:nowrap; pointer-events:none;">OUT OF STOCK</div>` : ''}
       </div>
       <div class="product-details">
         <h3>${product.name}</h3>
@@ -676,6 +677,7 @@ function openProductModal(id) {
   }
 
   const qty = basket.get(product.id) || 0;
+  const isOutOfStock = product.inStock === false || (product.stock !== undefined && product.stock <= 0);
 
   // Inject video button next to category
   const videoContainer = document.getElementById("modalVideoContainer");
@@ -691,7 +693,7 @@ function openProductModal(id) {
     videoContainer.innerHTML = "";
   }
 
-  controls.innerHTML = product.inStock === false
+  controls.innerHTML = isOutOfStock
     ? `<div class="out-of-stock-label">Sold Out</div>`
     : (qty
       ? `

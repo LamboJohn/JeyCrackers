@@ -506,6 +506,70 @@ function renderStats() {
     cCount.textContent = cats.size;
   }
   if (iCount) iCount.textContent = inquiries.length;
+  
+  renderInsights();
+}
+
+function renderInsights() {
+  const topSellersList = document.querySelector("#topSellersList");
+  const revToday = document.querySelector("#revenueToday");
+  const revWeek = document.querySelector("#revenueWeek");
+  const revTotal = document.querySelector("#revenueTotal");
+
+  if (!topSellersList || !inquiries.length) return;
+
+  // 1. Calculate Revenue
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const oneWeekAgo = today - (7 * 24 * 60 * 60 * 1000);
+
+  let totalDay = 0, totalWeek = 0, totalAll = 0;
+  const productSales = {}; // productID -> { name, qty, revenue }
+
+  inquiries.forEach(i => {
+    const time = i.timestamp?.toDate ? i.timestamp.toDate().getTime() : new Date(i.createdAt || 0).getTime();
+    const amount = Number(i.total || 0);
+    
+    totalAll += amount;
+    if (time >= today) totalDay += amount;
+    if (time >= oneWeekAgo) totalWeek += amount;
+
+    // Track product sales
+    (i.items || []).forEach(item => {
+      const id = item.id;
+      if (!productSales[id]) {
+        productSales[id] = { name: item.name || id, qty: 0, revenue: 0 };
+      }
+      productSales[id].qty += Number(item.qty || 0);
+      
+      // Calculate revenue per product if possible
+      const p = products.find(x => x.id === id);
+      if (p) {
+        productSales[id].revenue += (Number(p.price || 0) * Number(item.qty || 0));
+      }
+    });
+  });
+
+  if (revToday) revToday.textContent = price(totalDay);
+  if (revWeek) revWeek.textContent = price(totalWeek);
+  if (revTotal) revTotal.textContent = price(totalAll);
+
+  // 2. Identify Top 5 Sellers
+  const sortedSellers = Object.values(productSales)
+    .sort((a, b) => b.qty - a.qty)
+    .slice(0, 5);
+
+  topSellersList.innerHTML = sortedSellers.length > 0 
+    ? sortedSellers.map((s, idx) => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="width:20px; color:var(--gold); font-weight:800; font-size:0.8rem;">${idx + 1}</span>
+            <span style="font-size:0.85rem; color:#fff; font-weight:600;">${s.name}</span>
+          </div>
+          <span style="font-size:0.75rem; color:var(--muted); font-weight:800;">${s.qty} units sold</span>
+        </div>
+      `).join("")
+    : `<p style="color:var(--muted); font-size:0.85rem;">No sales data yet.</p>`;
 }
 
 function fillSettingsForm() {
@@ -564,6 +628,7 @@ window.editProduct = (id) => {
   form.editProductPrice.value = p.price;
   form.editProductMarketPrice.value = p.marketPrice || p.price * 3;
   form.editProductUnit.value = p.unit;
+  form.editProductStock.value = p.stock !== undefined ? p.stock : (p.quantity !== undefined ? p.quantity : 100);
   form.editProductVideo.value = p.videoUrl || "";
   form.editProductNote.value = p.note || "";
   form.editProductColor.value = p.color || "#ffd700";
@@ -1098,6 +1163,7 @@ productForm?.addEventListener("submit", async (e) => {
     price: Number(productForm.productPrice.value),
     marketPrice: Number(productForm.productMarketPrice.value),
     unit: productForm.productUnit.value,
+    stock: Number(productForm.productStock.value),
     videoUrl: productForm.productVideo.value,
     note: productForm.productNote.value,
     color: productForm.productColor.value,
@@ -1123,6 +1189,7 @@ document.getElementById("editForm")?.addEventListener("submit", async (e) => {
     price: Number(form.editProductPrice.value),
     marketPrice: Number(form.editProductMarketPrice.value),
     unit: form.editProductUnit.value,
+    stock: Number(form.editProductStock.value),
     videoUrl: form.editProductVideo.value,
     note: form.editProductNote.value,
     color: form.editProductColor.value,
