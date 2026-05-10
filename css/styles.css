@@ -1499,7 +1499,7 @@ footer {
   place-items: center;
   z-index: 1000;
   transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: none !important; 
+  box-shadow: none !important;
 }
 
 .floating-whatsapp:hover {
@@ -1516,9 +1516,17 @@ footer {
 }
 
 @keyframes cartPop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.3); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.3);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .cart-sparks {
@@ -1539,21 +1547,52 @@ footer {
   box-shadow: 0 0 5px var(--gold);
 }
 
-.cart-toggle.pop .spark:nth-child(1) { animation: sparkFly1 0.6s ease-out forwards; }
-.cart-toggle.pop .spark:nth-child(2) { animation: sparkFly2 0.6s ease-out 0.1s forwards; }
-.cart-toggle.pop .spark:nth-child(3) { animation: sparkFly3 0.6s ease-out 0.2s forwards; }
+.cart-toggle.pop .spark:nth-child(1) {
+  animation: sparkFly1 0.6s ease-out forwards;
+}
+
+.cart-toggle.pop .spark:nth-child(2) {
+  animation: sparkFly2 0.6s ease-out 0.1s forwards;
+}
+
+.cart-toggle.pop .spark:nth-child(3) {
+  animation: sparkFly3 0.6s ease-out 0.2s forwards;
+}
 
 @keyframes sparkFly1 {
-  0% { transform: translate(0, 0) scale(1); opacity: 1; }
-  100% { transform: translate(-20px, -30px) scale(0); opacity: 0; }
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-20px, -30px) scale(0);
+    opacity: 0;
+  }
 }
+
 @keyframes sparkFly2 {
-  0% { transform: translate(0, 0) scale(1); opacity: 1; }
-  100% { transform: translate(0px, -40px) scale(0); opacity: 0; }
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(0px, -40px) scale(0);
+    opacity: 0;
+  }
 }
+
 @keyframes sparkFly3 {
-  0% { transform: translate(0, 0) scale(1); opacity: 1; }
-  100% { transform: translate(20px, -30px) scale(0); opacity: 0; }
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(20px, -30px) scale(0);
+    opacity: 0;
+  }
 }
 
 .floating-whatsapp svg {
@@ -1563,8 +1602,11 @@ footer {
   filter: none !important;
 }
 
-.social-links {
+.social-links,
+.footer-socials {
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 25px;
   margin-top: 15px;
 }
@@ -1595,9 +1637,23 @@ footer {
   box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
 }
 
-.social-icon.instagram:hover { color: #E1306C; box-shadow: 0 5px 15px rgba(225, 48, 108, 0.4); border-color: #E1306C; }
-.social-icon.youtube:hover { color: #FF0000; box-shadow: 0 5px 15px rgba(255, 0, 0, 0.4); border-color: #FF0000; }
-.social-icon.facebook:hover { color: #1877F2; box-shadow: 0 5px 15px rgba(24, 119, 242, 0.4); border-color: #1877F2; }
+.social-icon.instagram:hover {
+  color: #E1306C;
+  box-shadow: 0 5px 15px rgba(225, 48, 108, 0.4);
+  border-color: #E1306C;
+}
+
+.social-icon.youtube:hover {
+  color: #FF0000;
+  box-shadow: 0 5px 15px rgba(255, 0, 0, 0.4);
+  border-color: #FF0000;
+}
+
+.social-icon.facebook:hover {
+  color: #1877F2;
+  box-shadow: 0 5px 15px rgba(24, 119, 242, 0.4);
+  border-color: #1877F2;
+}
 
 .admin-page {
   padding-bottom: 40px;
@@ -2120,6 +2176,13 @@ footer {
   footer div {
     text-align: center !important;
     align-items: center !important;
+  }
+
+  .footer-socials {
+    flex-direction: row !important;
+    justify-content: center !important;
+    gap: 14px !important;
+    width: 100% !important;
   }
 
   .site-header {
@@ -4642,11 +4705,29 @@ input:focus+.admin-toggle-slider {
   color: #fff;
   border: none;
 }
+
 .button.success:hover {
   background: #16a34a;
   box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
 }
+
 .button.sm {
   padding: 6px 12px;
   font-size: 0.75rem;
+}
+
+/* Keep footer social icons in one horizontal row */
+footer .footer-socials {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 14px !important;
+  width: 100% !important;
+}
+
+footer .footer-socials .social-icon {
+  flex: 0 0 50px !important;
+  display: grid !important;
 }

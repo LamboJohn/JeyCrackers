@@ -1508,7 +1508,6 @@ document.addEventListener("click", (e) => {
 window.showProductForm = () => {
   const form = document.getElementById("productForm");
   if (form) form.style.display = "grid";
-  window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 window.hideProductForm = () => {
