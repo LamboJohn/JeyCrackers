@@ -105,6 +105,10 @@
               <input type="text" id="adminSearch" placeholder="Search products..." oninput="window.renderProducts()" style="width:100%; padding:8px 12px 8px 36px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff;">
               <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); opacity:0.5;">🔍</span>
             </div>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--muted); font-size:0.8rem; user-select:none; white-space:nowrap;">
+              <input type="checkbox" id="toggleIds" onchange="window.renderProducts()" style="accent-color:var(--gold)">
+              Show IDs
+            </label>
             <button onclick="window.showProductForm()" class="button sm primary">+ Add Product</button>
             <div class="export-container" style="position:relative;">
               <button onclick="window.toggleExportMenu('productExportMenu')" class="button sm ghost" style="color:var(--gold); border-color:var(--gold)">Export ▾</button>

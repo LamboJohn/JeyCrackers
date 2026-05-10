@@ -178,13 +178,15 @@ function renderProducts() {
     const isPending = pendingImages.has(p.id);
     const pendingData = isPending ? pendingImages.get(p.id) : undefined;
     const currentImg = isPending ? pendingData : p.imageData;
+    const showIds = document.querySelector("#toggleIds")?.checked || false;
+    
     row.innerHTML = `
       <td style="color:var(--muted); font-weight:600;">#${globalIndex + 1}</td>
       <td>
         <div style="display:flex; align-items:center; gap:12px;">
           <div style="display:flex; flex-direction:column;">
             <strong style="color:#fff; font-size:0.95rem;">${p.name}</strong>
-            <span style="font-size:0.75rem; color:var(--muted)">ID: ${p.id.slice(0,8)}</span>
+            ${showIds ? `<span style="font-size:0.75rem; color:var(--muted)">ID: ${p.id}</span>` : ''}
           </div>
         </div>
       </td>

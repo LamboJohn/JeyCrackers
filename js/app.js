@@ -541,7 +541,11 @@ function renderProducts() {
 window.goToPage = (num) => {
   currentPage = num;
   renderProducts();
-  window.scrollTo({ top: document.querySelector("#products").offsetTop - 100, behavior: 'smooth' });
+  setTimeout(() => {
+    const toolbar = document.querySelector("#catalog-toolbar");
+    const top = toolbar.getBoundingClientRect().top + window.pageYOffset - 20;
+    window.scrollTo({ top, behavior: 'smooth' });
+  }, 50);
 };
 
 window.changePageSize = (size) => {
@@ -553,7 +557,11 @@ window.changePageSize = (size) => {
 window.changePage = (dir) => {
   currentPage += dir;
   renderProducts();
-  window.scrollTo({ top: document.querySelector("#products").offsetTop - 100, behavior: 'smooth' });
+  setTimeout(() => {
+    const toolbar = document.querySelector("#catalog-toolbar");
+    const top = toolbar.getBoundingClientRect().top + window.pageYOffset - 20;
+    window.scrollTo({ top, behavior: 'smooth' });
+  }, 50);
 };
 
 function basketSummary() {
@@ -586,6 +594,30 @@ function renderFloatingCart() {
   if (pTotal) pTotal.textContent = price(summary.total);
   if (pSavings) pSavings.textContent = price(summary.savings);
   if (widget) widget.classList.toggle("visible", summary.items > 0);
+
+  // Update Cart Icon (Clean look with Pop animation)
+  const cartToggle = document.querySelector("#cartToggle");
+  if (cartToggle) {
+    const oldCount = parseInt(cartToggle.querySelector(".cart-badge")?.textContent || "0");
+
+    cartToggle.innerHTML = `
+      <div class="cart-sparks">
+        <div class="spark"></div><div class="spark"></div><div class="spark"></div>
+      </div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+      </svg>
+      <span class="cart-badge" id="cartBadge">${summary.items}</span>
+    `;
+
+    // Trigger animation if count increased
+    if (summary.items > oldCount) {
+      cartToggle.classList.remove("pop");
+      void cartToggle.offsetWidth; // Trigger reflow
+      cartToggle.classList.add("pop");
+    }
+  }
 
   if (pItems) {
     pItems.innerHTML = "";
@@ -637,7 +669,7 @@ function openProductModal(id) {
   }
 
   const qty = basket.get(product.id) || 0;
-  
+
   // Inject video button next to category
   const videoContainer = document.getElementById("modalVideoContainer");
   if (product.videoUrl) {
@@ -706,7 +738,7 @@ function initMobileMenu() {
   const hamburger = document.querySelector("#hamburger");
   const navMenu = document.querySelector("#navMenu");
   const backdrop = document.querySelector("#navBackdrop");
-  
+
   if (hamburger && navMenu) {
     function toggleMenu(isOpen) {
       navMenu.classList.toggle("active", isOpen);
@@ -721,19 +753,19 @@ function initMobileMenu() {
     hamburger.addEventListener("click", () => {
       const isOpen = !navMenu.classList.contains("active");
       toggleMenu(isOpen);
-      
+
       if (isOpen) {
         history.pushState({ menu: "open" }, "");
       }
     });
-    
+
     // Close menu when any link inside it is clicked
     const links = navMenu.querySelectorAll("a");
     links.forEach(link => {
       link.addEventListener("click", () => {
         if (navMenu.classList.contains("active")) {
           toggleMenu(false);
-          
+
           const href = link.getAttribute("href");
           if (href && href.startsWith("#")) {
             history.back(); // Only go back if it's an anchor link on the same page
@@ -774,7 +806,7 @@ document.addEventListener("click", e => {
     addToBasket(add.dataset.add);
     add.classList.add("btn-pop");
     setTimeout(() => add.classList.remove("btn-pop"), 300);
-    
+
     const badge = document.getElementById("cartBadge");
     if (badge) {
       badge.classList.add("badge-pop");
@@ -803,10 +835,18 @@ document.addEventListener("click", e => {
     const pModal = document.getElementById("productModal");
     if (pModal && pModal.style.display === "flex") openProductModal(minus.dataset.minus);
   }
-  
+
   const visual = e.target.closest("[data-product-id]");
-  const isInteractive = e.target.closest("button") || e.target.closest(".play-video-btn") || e.target.closest("[data-add]") || e.target.closest("[data-plus]") || e.target.closest("[data-minus]");
-  
+  const isInteractive = e.target.closest("button") ||
+    e.target.closest(".play-video-btn") ||
+    e.target.closest("[data-add]") ||
+    e.target.closest("[data-plus]") ||
+    e.target.closest("[data-minus]") ||
+    e.target.closest(".stepper") ||
+    e.target.closest(".thumbnail-stepper") ||
+    e.target.closest(".qty-val") ||
+    e.target.closest(".stepper-value");
+
   if (visual && !isInteractive) {
     const id = visual.dataset.productId;
     openProductModal(id);
@@ -1021,25 +1061,25 @@ document.addEventListener("DOMContentLoaded", () => {
       clone.classList.add('trust-clone-item');
       trustStrip.appendChild(clone);
     }
-    
+
     let scrollInterval = setInterval(() => {
       // Don't auto-scroll on desktop where it's a grid
       if (window.innerWidth > 640) return;
-      
+
       const itemWidth = trustStrip.clientWidth;
       if (itemWidth === 0) return;
-      
+
       const totalItems = trustStrip.children.length;
       let nextScroll = trustStrip.scrollLeft + itemWidth;
-      
+
       // Temporarily disable scroll snap to allow smooth JS scrolling
       trustStrip.style.scrollSnapType = 'none';
-      
+
       trustStrip.scrollTo({
         left: nextScroll,
         behavior: 'smooth'
       });
-      
+
       // If we just scrolled to the cloned item (the last one)
       if (nextScroll >= (totalItems - 1) * itemWidth - 10) {
         setTimeout(() => {
@@ -1053,7 +1093,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 600);
       }
     }, 5000); // Reduced speed (5 seconds instead of 3)
-    
+
     // Pause on touch
     trustStrip.addEventListener('touchstart', () => clearInterval(scrollInterval));
   }
@@ -1061,14 +1101,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // Toggle Cart Popover
   const cartToggle = document.querySelector("#cartToggle");
   const cartPopover = document.querySelector("#cartPopover");
- 
+
   cartToggle?.addEventListener("click", (e) => {
     e.stopPropagation();
     const isActive = cartPopover?.classList.toggle("active");
     document.documentElement.classList.toggle("no-scroll", isActive);
     document.body.classList.toggle("no-scroll", isActive);
   });
- 
+
   document.addEventListener("click", () => {
     if (cartPopover?.classList.contains("active")) {
       cartPopover.classList.remove("active");
@@ -1076,7 +1116,7 @@ document.addEventListener("DOMContentLoaded", () => {
       document.body.classList.remove("no-scroll");
     }
   });
- 
+
   cartPopover?.addEventListener("click", (e) => {
     e.stopPropagation();
   });
