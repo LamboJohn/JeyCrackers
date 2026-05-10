@@ -4,6 +4,16 @@ let currentPage = 1;
 let pageSize = 40;
 let lastQuantityPulseId = null;
 
+const categoryDescriptions = {
+  "Sound Crackers": "Experience the tradition of Sivakasi with our premium Sound Crackers. From classic lakshmi crackers to powerful atom bombs, we offer high-decibel performance with maximum safety standards.",
+  "Chakkars": "Brighten up your floor with our vibrant Ground Chakkars. Our spinning fireworks are carefully balanced for smooth rotation and a brilliant shower of colorful sparks.",
+  "Sparklers": "Perfect for children and families, our eco-friendly sparklers are available in various colors and lengths. They produce minimal smoke while providing long-lasting brilliant lights.",
+  "Flower Pots": "Create a spectacular fountain of light with our high-quality Flower Pots. Available in multiple sizes and colors, they provide a steady and majestic display for your celebrations.",
+  "Rockets": "Soar into the sky with our powerful Rockets. These aerial fireworks are designed for height and stability, ending in beautiful bursts of color and light.",
+  "Aerial Shots": "The ultimate festival highlight! Our Aerial Shots provide professional-grade displays of vibrant colors and patterns high in the air, perfect for grand celebrations.",
+  "Gift Boxes": "Our curated Gift Boxes are the perfect all-in-one solution for family celebrations. Each box contains a premium assortment of crackers, sparklers, and chakkars at wholesale prices."
+};
+
 document.addEventListener("DOMContentLoaded", () => {
   const ps = document.querySelector("#pageSize");
   if (ps) ps.value = pageSize;
@@ -345,6 +355,50 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+function updateProductSchema(paginatedList) {
+  let schema = document.getElementById("productSchema");
+  if (!schema) {
+    schema = document.createElement("script");
+    schema.id = "productSchema";
+    schema.type = "application/ld+json";
+    document.head.appendChild(schema);
+  }
+
+  const productsSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "itemListElement": paginatedList.map((product, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "item": {
+        "@type": "Product",
+        "name": product.name,
+        "image": product.imageData || product.image || "https://lambojohn.github.io/JeyCrackers/images/jeycrackers-j-edited.png",
+        "description": product.note || `Buy ${product.name} at wholesale prices. Genuine Sivakasi crackers.`,
+        "sku": product.id,
+        "brand": {
+          "@type": "Brand",
+          "name": "Jey Crackers"
+        },
+        "offers": {
+          "@type": "Offer",
+          "url": window.location.href,
+          "priceCurrency": "INR",
+          "price": product.price,
+          "itemCondition": "https://schema.org/NewCondition",
+          "availability": product.inStock !== false ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          "seller": {
+            "@type": "Organization",
+            "name": "Jey Crackers"
+          }
+        }
+      }
+    }))
+  };
+
+  schema.textContent = JSON.stringify(productsSchema);
+}
+
 function renderProducts() {
   const container = document.querySelector("#productGrid");
   const pCount = document.querySelector("#productCount");
@@ -357,6 +411,21 @@ function renderProducts() {
   const start = (currentPage - 1) * pageSize;
   const end = start + pageSize;
   const paginatedList = visibleProducts.slice(start, end);
+
+  // Update dynamic product schema for SEO
+  updateProductSchema(paginatedList);
+
+  // Update category description
+  const cDesc = document.querySelector("#categoryDescription");
+  if (cDesc) {
+    const category = document.querySelector("#category")?.value || "all";
+    if (category !== "all" && categoryDescriptions[category]) {
+      cDesc.textContent = categoryDescriptions[category];
+      cDesc.style.display = "block";
+    } else {
+      cDesc.style.display = "none";
+    }
+  }
 
   if (pCount) pCount.textContent = `Showing ${visibleProducts.length} items`;
 
