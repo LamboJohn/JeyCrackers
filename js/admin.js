@@ -538,14 +538,15 @@ function renderInsights() {
     (i.items || []).forEach(item => {
       const id = item.id;
       if (!productSales[id]) {
-        productSales[id] = { name: item.name || id, qty: 0, revenue: 0 };
+        productSales[id] = { name: item.name || id, qty: 0, revenue: 0, enquiries: 0, category: 'Other' };
       }
       productSales[id].qty += Number(item.qty || 0);
+      productSales[id].enquiries += 1; // Count how many different orders this item was in
       
-      // Calculate revenue per product if possible
       const p = products.find(x => x.id === id);
       if (p) {
         productSales[id].revenue += (Number(p.price || 0) * Number(item.qty || 0));
+        productSales[id].category = p.category;
       }
     });
   });
@@ -566,11 +567,52 @@ function renderInsights() {
             <span style="width:20px; color:var(--gold); font-weight:800; font-size:0.8rem;">${idx + 1}</span>
             <span style="font-size:0.85rem; color:#fff; font-weight:600;">${s.name}</span>
           </div>
-          <span style="font-size:0.75rem; color:var(--muted); font-weight:800;">${s.qty} units sold</span>
+          <span style="font-size:0.75rem; color:var(--muted); font-weight:800;">${s.qty} units | ${s.enquiries} enq</span>
         </div>
       `).join("")
     : `<p style="color:var(--muted); font-size:0.85rem;">No sales data yet.</p>`;
+
+  renderSalesReport(productSales);
 }
+
+function renderSalesReport(productSales) {
+  const salesRows = document.querySelector("#salesRows");
+  if (!salesRows) return;
+
+  const allSales = Object.values(productSales).sort((a, b) => b.revenue - a.revenue);
+
+  salesRows.innerHTML = allSales.map(s => `
+    <tr>
+      <td style="font-weight:700; color:#fff;">${s.name}</td>
+      <td><span class="tag" style="background:rgba(255,255,255,0.05); font-size:0.7rem;">${s.category}</span></td>
+      <td style="text-align:center; font-weight:800; color:var(--gold);">${s.qty}</td>
+      <td style="text-align:center; color:var(--muted);">${s.enquiries}</td>
+      <td style="text-align:right; font-weight:800; color:#fff;">${price(s.revenue)}</td>
+    </tr>
+  `).join("");
+
+  window.currentProductSales = allSales; // Store for export
+}
+
+window.exportSalesReportExcel = () => {
+  const data = window.currentProductSales;
+  if (!data || data.length === 0) return alert("No sales data to export.");
+
+  let csv = "Product Name,Category,Units Sold,Number of Enquiries,Total Revenue\n";
+  data.forEach(s => {
+    csv += `"${s.name}","${s.category}",${s.qty},${s.enquiries},${s.revenue}\n`;
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.setAttribute('hidden', '');
+  a.setAttribute('href', url);
+  a.setAttribute('download', `sales_report_${new Date().toLocaleDateString()}.csv`);
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+};
 
 function fillSettingsForm() {
   if (!settingsForm) return;

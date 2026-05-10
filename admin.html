@@ -130,6 +130,7 @@
 
       <section class="admin-tabs" aria-label="Admin sections">
         <button class="admin-tab active" type="button" data-admin-tab="products">Products</button>
+        <button class="admin-tab" type="button" data-admin-tab="sales">Sales Report</button>
         <button class="admin-tab" type="button" data-admin-tab="enquiries">Enquiries</button>
         <button class="admin-tab" type="button" data-admin-tab="settings">Site Settings</button>
         <button class="admin-tab" type="button" data-admin-tab="hero">Hero Manager</button>
@@ -349,6 +350,28 @@
         <h2>Promo Codes</h2>
         <p>Coming Soon: Manage discounts and coupons.</p>
       </section>
+
+      <!-- Full Sales Report Panel -->
+      <div id="salesPanel" class="admin-panel">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; padding-bottom:16px; border-bottom:1px solid #30363d;">
+          <h2 style="color:var(--gold); font-family:var(--font-display); margin:0;">Detailed Sales Report</h2>
+          <button onclick="window.exportSalesReportExcel()" class="button sm ghost" style="color:var(--gold); border-color:var(--gold)">Export to Excel</button>
+        </div>
+        <div class="admin-table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th style="text-align:left;">Product Name</th>
+                <th>Category</th>
+                <th style="text-align:center;">Units Sold</th>
+                <th style="text-align:center;">Enquiries</th>
+                <th style="text-align:right;">Total Revenue</th>
+              </tr>
+            </thead>
+            <tbody id="salesRows"></tbody>
+          </table>
+        </div>
+      </div>
 
       <section id="enquiriesPanel" class="admin-panel admin-section" aria-labelledby="enquiries-title">
         <div class="section-heading">
