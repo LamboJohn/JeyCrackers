@@ -472,7 +472,7 @@ function renderProducts() {
 window.goToPage = (num) => {
   currentPage = num;
   renderProducts();
-  window.scrollTo({ top: document.querySelector("#catalog").offsetTop - 100, behavior: 'smooth' });
+  window.scrollTo({ top: document.querySelector("#products").offsetTop - 100, behavior: 'smooth' });
 };
 
 window.changePageSize = (size) => {
@@ -484,7 +484,7 @@ window.changePageSize = (size) => {
 window.changePage = (dir) => {
   currentPage += dir;
   renderProducts();
-  window.scrollTo({ top: document.querySelector("#catalog").offsetTop - 100, behavior: 'smooth' });
+  window.scrollTo({ top: document.querySelector("#products").offsetTop - 100, behavior: 'smooth' });
 };
 
 function basketSummary() {
