@@ -1033,8 +1033,14 @@ function animateSparks() {
 }
 
 function initHeaderScroll() {
+  const header = document.querySelector(".header") || document.querySelector(".site-header");
+  if (!header) return;
+  
+  // Set initial state immediately
+  header.classList.toggle("scrolled", window.scrollY > 50);
+
   window.addEventListener("scroll", () => {
-    document.querySelector(".site-header")?.classList.toggle("scrolled", window.scrollY > 50);
+    header.classList.toggle("scrolled", window.scrollY > 50);
   });
 }
 
