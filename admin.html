@@ -147,12 +147,16 @@
             <datalist id="categoryOptions"></datalist>
           </div>
           <div>
-            <label for="productPrice">Offer Price (Rs)</label>
-            <input id="productPrice" type="number" min="0" step="1" required>
-          </div>
-          <div>
             <label for="productMarketPrice">Market Price (Rs)</label>
             <input id="productMarketPrice" type="number" min="0" step="1" required>
+          </div>
+          <div>
+            <label for="productDiscount">Discount (%)</label>
+            <input id="productDiscount" type="number" min="0" max="100" step="0.1" placeholder="e.g. 50">
+          </div>
+          <div>
+            <label for="productPrice">Offer Price (Selling) (Rs)</label>
+            <input id="productPrice" type="number" min="0" step="1" required>
           </div>
           <div>
             <label for="productUnit">Unit</label>
@@ -433,13 +437,18 @@
           </div>
           
           <div>
-            <label for="editProductPrice" style="display:block; margin-bottom:8px; color:rgba(255,255,255,0.7); font-size:0.85rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Offer Price (Rs)</label>
-            <input id="editProductPrice" type="number" min="0" step="1" required style="width:100%; padding:12px; border-radius:8px; background:#0a0c10; border:1px solid #30363d; color:#fff; font-family:inherit; font-size:0.95rem; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='#30363d'">
+            <label for="editProductMarketPrice" style="display:block; margin-bottom:8px; color:rgba(255,255,255,0.7); font-size:0.85rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Market Price (Rs)</label>
+            <input id="editProductMarketPrice" type="number" min="0" step="1" required style="width:100%; padding:12px; border-radius:8px; background:#0a0c10; border:1px solid #30363d; color:#fff; font-family:inherit; font-size:0.95rem; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='#30363d'">
           </div>
           
           <div>
-            <label for="editProductMarketPrice" style="display:block; margin-bottom:8px; color:rgba(255,255,255,0.7); font-size:0.85rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Market Price (Rs)</label>
-            <input id="editProductMarketPrice" type="number" min="0" step="1" required style="width:100%; padding:12px; border-radius:8px; background:#0a0c10; border:1px solid #30363d; color:#fff; font-family:inherit; font-size:0.95rem; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='#30363d'">
+            <label for="editProductDiscount" style="display:block; margin-bottom:8px; color:rgba(255,255,255,0.7); font-size:0.85rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Discount (%)</label>
+            <input id="editProductDiscount" type="number" min="0" max="100" step="0.1" placeholder="e.g. 50" style="width:100%; padding:12px; border-radius:8px; background:#0a0c10; border:1px solid #30363d; color:#fff; font-family:inherit; font-size:0.95rem; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='#30363d'">
+          </div>
+
+          <div>
+            <label for="editProductPrice" style="display:block; margin-bottom:8px; color:rgba(255,255,255,0.7); font-size:0.85rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Offer Price (Selling) (Rs)</label>
+            <input id="editProductPrice" type="number" min="0" step="1" required style="width:100%; padding:12px; border-radius:8px; background:#0a0c10; border:1px solid #30363d; color:#fff; font-family:inherit; font-size:0.95rem; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='#30363d'">
           </div>
           
           <div style="grid-column: span 2;">

@@ -58,6 +58,41 @@ function slugify(text) {
   return text.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
 
+// --- PRICING LOGIC ---
+function setupPricingLogic(priceId, marketPriceId, discountId) {
+  const priceInput = document.getElementById(priceId);
+  const marketPriceInput = document.getElementById(marketPriceId);
+  const discountInput = document.getElementById(discountId);
+
+  if (!priceInput || !marketPriceInput || !discountInput) return;
+
+  // Calculate Discount % when Selling Price or Market Price changes
+  const updateDiscount = () => {
+    const market = parseFloat(marketPriceInput.value) || 0;
+    const sell = parseFloat(priceInput.value) || 0;
+    if (market > 0) {
+      const disc = ((market - sell) / market) * 100;
+      discountInput.value = disc.toFixed(1);
+    } else {
+      discountInput.value = 0;
+    }
+  };
+
+  // Calculate Selling Price when Discount % or Market Price changes
+  const updateSellingPrice = () => {
+    const market = parseFloat(marketPriceInput.value) || 0;
+    const disc = parseFloat(discountInput.value) || 0;
+    if (market > 0) {
+      const sell = market * (1 - disc / 100);
+      priceInput.value = Math.round(sell);
+    }
+  };
+
+  priceInput.addEventListener("input", updateDiscount);
+  marketPriceInput.addEventListener("input", updateDiscount);
+  discountInput.addEventListener("input", updateSellingPrice);
+}
+
 // --- AUTH SYSTEM ---
 function initAuth() {
   const overlay = document.querySelector("#loginOverlay");
@@ -341,6 +376,7 @@ function renderInquiries() {
         </select>
       </td>
       <td class="admin-actions">
+        <button class="button sm success" onclick="sendDispatchMessage('${i.id}')" title="Send Dispatch WhatsApp">Dispatch</button>
         <button class="button sm primary" onclick="downloadInquiryPDF('${i.id}')" title="Download PDF Quote">PDF</button>
         <button class="button sm danger" onclick="deleteInquiry('${i.id}')" title="Delete Permanent">Delete</button>
       </td>
@@ -386,6 +422,22 @@ window.changeInquiryPageSize = (size) => {
   renderInquiries();
 };
 
+
+window.sendDispatchMessage = (id) => {
+  const i = inquiries.find(x => x.id === id);
+  if (!i) return;
+  
+  const customerName = i.customerName || i.name || "Customer";
+  const phone = i.phone.replace(/[^0-9]/g, "");
+  
+  // Clean phone number (ensure 91 prefix)
+  const cleanPhone = phone.length === 10 ? "91" + phone : phone;
+  
+  const message = `Hello ${customerName}, your Jey Crackers order has been dispatched! Thank you for choosing us. Happy celebrations! 🎇`;
+  
+  const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+  window.open(whatsappUrl, '_blank');
+};
 
 window.updateInquiryStatus = async (id, newStatus) => {
   try {
@@ -520,6 +572,15 @@ window.editProduct = (id) => {
   const imgPrev = document.getElementById("editImagePreview");
   if (imgPrev) {
     imgPrev.innerHTML = p.imageData ? `<img src="${p.imageData}" style="max-height: 100px; border-radius: 4px;">` : "No image selected";
+  }
+
+  // Calculate initial discount for the edit modal
+  const market = parseFloat(p.marketPrice) || parseFloat(p.price) || 0;
+  const sell = parseFloat(p.price) || 0;
+  if (market > 0) {
+    form.editProductDiscount.value = (((market - sell) / market) * 100).toFixed(1);
+  } else {
+    form.editProductDiscount.value = 0;
   }
 
   modal.style.display = "flex";
@@ -1417,6 +1478,11 @@ window.exportProductsExcel = () => {
 // Initialize everything
 document.addEventListener("DOMContentLoaded", () => {
   initAuth();
+  
+  // Setup automatic pricing logic
+  setupPricingLogic("productPrice", "productMarketPrice", "productDiscount");
+  setupPricingLogic("editProductPrice", "editProductMarketPrice", "editProductDiscount");
+
   const ps = document.querySelector("#pageSize");
   if (ps) ps.value = pageSize;
 });
