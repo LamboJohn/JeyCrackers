@@ -23,7 +23,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@800;900&family=Montserrat:wght@400;700;800;900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css?v=78">
+  <link rel="stylesheet" href="css/styles.css?v=82">
 </head>
 <body>
   <header class="header">
@@ -66,6 +66,7 @@
   <div class="nav-backdrop" id="navBackdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998;"></div>
 
   <main class="container cart-page-container">
+    <h1 class="sr-only">Your Enquiry List</h1>
     <div id="cartEmptyMessage" style="display: none; text-align: center; padding: 80px 20px;">
       <div class="empty-cart-icon">🛒</div>
       <h3>Your list is empty</h3>
@@ -78,7 +79,7 @@
       <section class="cart-items-section">
         <div class="cart-header">
           <h2>Your Selection <span id="itemCountLabel"></span></h2>
-          <a href="index.html" class="add-more-link">+ Add More</a>
+          <a href="index.html#catalog-toolbar" class="add-more-link">+ Add More</a>
         </div>
         <div id="basketItems" class="cart-items-list"></div>
       </section>
@@ -91,17 +92,20 @@
             <div class="summary-rows">
               <div class="summary-row">
                 <span>Subtotal (Market Price)</span>
-                <strong id="mrpTotalLabel">Rs 0</strong>
+                <strong id="mrpTotalLabel">₹ 0</strong>
               </div>
               <div class="summary-row savings">
                 <span>Your Savings</span>
-                <strong id="basketSavings">Rs 0</strong>
+                <strong id="basketSavings">₹ 0</strong>
               </div>
               <div class="summary-row total">
                 <span>Total Enquiry Value</span>
-                <strong id="basketTotal">Rs 0</strong>
+                <strong id="basketTotal">₹ 0</strong>
               </div>
             </div>
+            <p class="min-order-notice" style="font-size: 0.8rem; color: #777; margin-top: 12px; border-top: 1px solid #eee; padding-top: 10px; line-height: 1.4;">
+              ⚠️ The minimum order value is ₹3,000 within Tamil Nadu and ₹5,000 for orders outside Tamil Nadu.
+            </p>
           </div>
 
           <form id="enquiryForm" class="checkout-form">
@@ -115,136 +119,22 @@
               <input id="phone" name="phone" inputmode="tel" placeholder="10-digit number" pattern="[0-9]{10,15}" required>
             </div>
             <div class="form-row">
-              <label for="location">Delivery Address</label>
-              <textarea id="location" name="location" rows="3" placeholder="House No, Street, Landmark, Area" required></textarea>
+              <label for="pincode">Pincode</label>
+              <input id="pincode" name="pincode" inputmode="numeric" pattern="[0-9]{6}" placeholder="Enter 6-digit Pincode" required>
             </div>
             <div class="form-grid">
+              <div class="form-row">
+                <label for="city">City / District</label>
+                <input id="city" name="city" placeholder="City" required>
+              </div>
               <div class="form-row">
                 <label for="state">State</label>
                 <input id="state" name="state" value="Tamil Nadu" required>
               </div>
-              <div class="form-row">
-                <label for="pincode">Pincode</label>
-                <input id="pincode" name="pincode" inputmode="numeric" pattern="[0-9]{6}" placeholder="6-digit" required>
-              </div>
-            </div>
-            <div class="form-row promo-row">
-              <label for="promoCode">Promo Code</label>
-              <div class="promo-input-group">
-                <input id="promoCode" name="promoCode" placeholder="Code">
-                <button type="button" id="applyPromo">Apply</button>
-              </div>
-              <p id="promoStatus"></p>
-            </div>
-            <button class="button primary submit-button" type="submit">
-              Submit Enquiry via WhatsApp
-              <span class="btn-subtext">PDF Quotation will be generated</span>
-            </button>
-            <p id="messagePreview" class="message-preview"></p>
-          </form>
-</head>
-<body>
-  <header class="header">
-    <!-- Top Compliance Bar -->
-    <div class="top-bar">
-      <div class="top-bar-track">
-        <span>As per the supreme court order, Online sale of firecrackers is not permitted ! Don't worry, Request a quote with us and get the details of our crackers, Please add and submit your Enquiry. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-      </div>
-    </div>
-
-    <!-- Main Navigation -->
-    <div class="nav-container">
-      <!-- Logo -->
-      <a href="index.html" class="brand">
-        <img src="images/jeycrackers-j-edited.png" alt="JeyCrackers" class="brand-logo">
-        <img src="images/jeycrackers-text.png" alt="JeyCrackers Text" class="brand-text-image">
-      </a>
-
-      <button class="nav-toggle" id="hamburger" aria-label="Toggle navigation" style="background: none; border: none; color: var(--gold, #FFD700); cursor: pointer; display: none; padding: 10px; margin-left: auto; filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.4));">
-        <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-      </button>
-
-      <!-- Navigation Links -->
-      <nav class="nav-links" id="navMenu">
-        <a href="index.html">Home</a>
-        <a href="index.html#products">Products</a>
-        <a href="index.html#contact">Contact</a>
-        <a href="ordering-process.html">How to Order</a>
-        <a href="shipping.html">Shipping Info</a>
-        <a href="faq.html">FAQ</a>
-      </nav>
-
-      <!-- CTA -->
-      <div class="header-actions">
-
-      </div>
-    </div>
-  </header>
-
-  <div class="nav-backdrop" id="navBackdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998;"></div>
-
-  <main class="container cart-page-container">
-    <div id="cartEmptyMessage" style="display: none; text-align: center; padding: 80px 20px;">
-      <div class="empty-cart-icon">🛒</div>
-      <h3>Your list is empty</h3>
-      <p>Explore our premium collection and start adding crackers!</p>
-      <a href="index.html" class="button primary" style="margin-top: 30px; display: inline-block;">Go to Catalog</a>
-    </div>
-
-    <div id="cartContent" class="cart-grid">
-      <!-- Left Column: Items -->
-      <section class="cart-items-section">
-        <div class="cart-header">
-          <h2>Your Selection <span id="itemCountLabel"></span></h2>
-          <a href="index.html" class="add-more-link">+ Add More</a>
-        </div>
-        <div id="basketItems" class="cart-items-list"></div>
-      </section>
-
-      <!-- Right Column: Summary & Form -->
-      <aside class="cart-summary-aside">
-        <div class="sticky-summary">
-          <div class="summary-card">
-            <h3>Enquiry Summary</h3>
-            <div class="summary-rows">
-              <div class="summary-row">
-                <span>Subtotal (Market Price)</span>
-                <strong id="mrpTotalLabel">Rs 0</strong>
-              </div>
-              <div class="summary-row savings">
-                <span>Your Savings</span>
-                <strong id="basketSavings">Rs 0</strong>
-              </div>
-              <div class="summary-row total">
-                <span>Total Enquiry Value</span>
-                <strong id="basketTotal">Rs 0</strong>
-              </div>
-            </div>
-          </div>
-
-          <form id="enquiryForm" class="checkout-form">
-            <h4 class="form-title">Your Details</h4>
-            <div class="form-row">
-              <label for="customerName">Full Name</label>
-              <input id="customerName" name="customerName" placeholder="Enter your name" required>
-            </div>
-            <div class="form-row">
-              <label for="phone">WhatsApp Number</label>
-              <input id="phone" name="phone" inputmode="tel" placeholder="10-digit number" pattern="[0-9]{10,15}" required>
             </div>
             <div class="form-row">
               <label for="location">Delivery Address</label>
               <textarea id="location" name="location" rows="3" placeholder="House No, Street, Landmark, Area" required></textarea>
-            </div>
-            <div class="form-grid">
-              <div class="form-row">
-                <label for="state">State</label>
-                <input id="state" name="state" value="Tamil Nadu" required>
-              </div>
-              <div class="form-row">
-                <label for="pincode">Pincode</label>
-                <input id="pincode" name="pincode" inputmode="numeric" pattern="[0-9]{6}" placeholder="6-digit" required>
-              </div>
             </div>
             <div class="form-row promo-row">
               <label for="promoCode">Promo Code</label>
@@ -299,6 +189,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
   <script src="js/firebase-config.js"></script>
   <script src="js/products-data.js"></script>
-  <script src="js/cart.js?v=77"></script>
+  <script src="js/cart.js?v=81"></script>
 </body>
 </html>

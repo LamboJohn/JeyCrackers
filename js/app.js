@@ -1,6 +1,6 @@
 // Default data is now loaded from products-data.js
 let products = defaultProducts;
-let currentPage = 1;
+let currentPage = parseInt(sessionStorage.getItem('jey_currentPage')) || 1;
 let pageSize = 40;
 let lastQuantityPulseId = null;
 
@@ -109,7 +109,7 @@ function unlockBackgroundScrollIfClear() {
 
 // --- UTILS ---
 function price(value) {
-  return `Rs ${Number(value).toLocaleString("en-IN")}`;
+  return `₹ ${Number(value).toLocaleString("en-IN")}`;
 }
 
 function applySiteSettings() {
@@ -190,7 +190,8 @@ function applySiteSettings() {
     link.textContent = `📞 +91 ${siteSettings.phone}`;
   });
   document.querySelectorAll('a[href^="https://wa.me/"]').forEach(link => {
-    link.href = `https://wa.me/${siteSettings.whatsapp}`;
+    const defaultMsg = encodeURIComponent("Hello! I visited your website and I'm interested in purchasing crackers. Could you please share more details?");
+    link.href = `https://wa.me/${siteSettings.whatsapp}?text=${defaultMsg}`;
   });
 }
 
@@ -407,6 +408,7 @@ function renderProducts() {
   const visibleProducts = currentProducts();
   const totalPages = Math.ceil(visibleProducts.length / pageSize);
   if (currentPage > totalPages) currentPage = Math.max(1, totalPages);
+  sessionStorage.setItem('jey_currentPage', currentPage);
 
   const start = (currentPage - 1) * pageSize;
   const end = start + pageSize;
@@ -454,9 +456,9 @@ function renderProducts() {
       ? `<div class="out-of-stock-label">Sold Out</div>`
       : (qty
         ? `
-          <div class="stepper">
+          <div class="qty-stepper">
             <button type="button" data-minus="${product.id}">-</button>
-            <span class="stepper-value">${qty}</span>
+            <span class="qty-val">${qty}</span>
             <button type="button" data-plus="${product.id}">+</button>
           </div>
         `
@@ -491,6 +493,7 @@ function renderProducts() {
           ` : ''}
         </div>
 
+        
         ${isOutOfStock ? `<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-15deg); background:rgba(0,0,0,0.8); color:#fff; padding:5px 15px; border:2px solid #fff; font-weight:900; z-index:20; white-space:nowrap; pointer-events:none;">OUT OF STOCK</div>` : ''}
       </div>
       <div class="product-details">
@@ -697,9 +700,9 @@ function openProductModal(id) {
     ? `<div class="out-of-stock-label">Sold Out</div>`
     : (qty
       ? `
-        <div class="stepper" style="width:100%; justify-content:space-between;">
+        <div class="qty-stepper" style="width:100%; justify-content:space-between;">
           <button type="button" data-minus="${product.id}">-</button>
-          <span class="stepper-value">${qty}</span>
+          <span class="qty-val">${qty}</span>
           <button type="button" data-plus="${product.id}">+</button>
         </div>
       `
@@ -921,47 +924,60 @@ function startSyncs() {
 
   // 1. Load from LocalStorage Cache immediately for instant speed
   const cachedProducts = localStorage.getItem("jey_products_cache");
-  if (cachedProducts) {
+  const cacheTime = localStorage.getItem("jey_products_timestamp");
+  const now = Date.now();
+  const oneHour = 60 * 60 * 1000;
+
+  let needsFetch = true;
+  if (cachedProducts && cacheTime && (now - parseInt(cacheTime) < oneHour)) {
     try {
       products = JSON.parse(cachedProducts);
       console.log("⚡ Loaded from LocalStorage Cache");
       fillCategories();
       renderProducts();
+      renderFloatingCart();
+      needsFetch = false; // Cache is fresh, no need to fetch
     } catch (e) {
       console.error("Cache corrupted, ignoring.");
     }
   }
 
-  // 2. Fetch from Firestore to ensure freshness
-  // Using onSnapshot keeps the UI updated if you change things in Admin
-  window.db.collection("products").orderBy("name").onSnapshot(snap => {
-    if (!snap.empty) {
-      const newProducts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  // 2. Fetch from Firestore only if cache expired or missing
+  if (needsFetch) {
+    console.log("🔄 Fetching products from Firestore...");
+    window.db.collection("products").orderBy("name").get().then(snap => {
+      if (!snap.empty) {
+        const newProducts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-      // Update state
-      products = newProducts;
+        // Update state
+        products = newProducts;
 
-      // Update Cache for next visit
-      localStorage.setItem("jey_products_cache", JSON.stringify(newProducts));
-      localStorage.setItem("jey_products_timestamp", Date.now());
+        // Update Cache for next visit
+        localStorage.setItem("jey_products_cache", JSON.stringify(newProducts));
+        localStorage.setItem("jey_products_timestamp", now);
 
-      console.log("📡 Firestore Synced & Cache Updated");
+        console.log("📡 Firestore Synced & Cache Updated");
 
-      fillCategories();
-      renderProducts();
-    } else {
-      // If Firestore is empty, use defaults
-      products = defaultProducts;
-      fillCategories();
-      renderProducts();
-    }
-  }, err => {
-    console.error("Firestore Error:", err);
-    // Fallback to defaults on error if no cache
-    if (!products || products.length === 0) products = defaultProducts;
-    fillCategories();
-    renderProducts();
-  });
+        fillCategories();
+        renderProducts();
+        renderFloatingCart();
+      } else {
+        // If Firestore is empty, use defaults
+        products = defaultProducts;
+        fillCategories();
+        renderProducts();
+        renderFloatingCart();
+      }
+    }).catch(err => {
+      console.error("Firestore Error:", err);
+      if (!products || products.length === 0) {
+        products = defaultProducts;
+        fillCategories();
+        renderProducts();
+        renderFloatingCart();
+      }
+    });
+  }
 
   // Settings Sync (Small text, can stay real-time)
   window.db.collection("settings").doc("main").onSnapshot(doc => {
@@ -1044,7 +1060,7 @@ function animateSparks() {
 function initHeaderScroll() {
   const header = document.querySelector(".header") || document.querySelector(".site-header");
   if (!header) return;
-  
+
   // Set initial state immediately
   header.classList.toggle("scrolled", window.scrollY > 50);
 

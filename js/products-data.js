@@ -7,7 +7,7 @@ const defaultSlides = [];
 
 const defaultSettings = {
   shopName: "Jey Crackers",
-  phone: "9876543210",
+  phone: "9962384697",
   whatsapp: "919962384697",
   city: "Your City",
   heroTitle: "Buy Premium Diwali Crackers at Factory Prices",

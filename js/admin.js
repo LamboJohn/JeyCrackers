@@ -4,8 +4,8 @@ let settings = defaultSettings;
 let slides = [];
 let promoCodes = [];
 let inquiries = [];
-let currentPage = 1;
-let currentInquiryPage = 1;
+let currentPage = parseInt(localStorage.getItem('admin_currentPage')) || 1;
+let currentInquiryPage = parseInt(localStorage.getItem('admin_inqPage')) || 1;
 let pageSize = window.innerWidth < 600 ? 10 : 20;
 let iPageSize = 20;
 let sortKey = 'name';
@@ -50,8 +50,51 @@ const settingsForm = document.querySelector("#settingsForm");
 const heroForm = document.querySelector("#heroForm");
 const slideRows = document.querySelector("#slideRows");
 
+const inquirySearchInput = document.querySelector("#inquirySearchInput");
+const inquirySearchType = document.querySelector("#inquirySearchType");
+const inquirySearchBtn = document.querySelector("#inquirySearchBtn");
+const inquiryResetBtn = document.querySelector("#inquiryResetBtn");
+
+if (inquirySearchBtn) {
+  inquirySearchBtn.addEventListener("click", () => {
+    currentInquiryPage = 1;
+    renderInquiries();
+  });
+}
+
+if (inquirySearchInput) {
+  inquirySearchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      currentInquiryPage = 1;
+      renderInquiries();
+    }
+  });
+  
+  inquirySearchInput.addEventListener("input", (e) => {
+    if (e.target.value === "") {
+      currentInquiryPage = 1;
+      renderInquiries();
+    }
+  });
+}
+
+if (inquiryResetBtn) {
+  inquiryResetBtn.addEventListener("click", () => {
+    if (inquirySearchInput) inquirySearchInput.value = "";
+    currentInquiryPage = 1;
+    renderInquiries();
+  });
+}
+
+if (inquirySearchType) {
+  inquirySearchType.addEventListener("change", () => {
+    currentInquiryPage = 1;
+    renderInquiries();
+  });
+}
+
 function price(value) {
-  return `Rs ${Number(value || 0).toLocaleString("en-IN")}`;
+  return `₹ ${Number(value || 0).toLocaleString("en-IN")}`;
 }
 
 function slugify(text) {
@@ -128,42 +171,44 @@ function initAuth() {
 }
 
 // --- DATA SYNCS ---
-function startDataSyncs() {
+async function startDataSyncs() {
   if (!window.db) return;
 
-  // Products
-  window.db.collection("products").orderBy("name").onSnapshot(snap => {
-    products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  try {
+    // Products (One-time fetch to save reads)
+    const prodSnap = await window.db.collection("products").orderBy("name").get();
+    products = prodSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Restore saved page AFTER data loads (auth delay can clear earlier reads)
+    currentPage = parseInt(localStorage.getItem('admin_currentPage')) || 1;
     renderProducts();
     renderStats();
-  });
 
-  // Settings
-  window.db.collection("settings").doc("main").onSnapshot(doc => {
+    // Settings
+    const doc = await window.db.collection("settings").doc("main").get();
     if (doc.exists) {
       settings = doc.data();
       fillSettingsForm();
     }
-  });
 
-  // Slides
-  window.db.collection("slides").onSnapshot(snap => {
-    slides = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Slides
+    const slideSnap = await window.db.collection("slides").get();
+    slides = slideSnap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderSlides();
-  });
 
-  // Inquiries - Use flexible ordering
-  window.db.collection("inquiries").onSnapshot(snap => {
-    inquiries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    // Sort manually in JS to handle both 'timestamp' (Firestore) and 'createdAt' (String)
+    // Inquiries
+    const inqSnap = await window.db.collection("inquiries").get();
+    inquiries = inqSnap.docs.map(d => ({ id: d.id, ...d.data() }));
     inquiries.sort((a, b) => {
       const timeA = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(a.createdAt || 0);
       const timeB = b.timestamp?.toDate ? b.timestamp.toDate() : new Date(b.createdAt || 0);
       return timeB - timeA;
     });
+    currentInquiryPage = parseInt(localStorage.getItem('admin_inqPage')) || 1;
     renderInquiries();
     renderStats();
-  });
+  } catch (err) {
+    console.error("Error loading data:", err);
+  }
 }
 
 // --- RENDERERS ---
@@ -287,6 +332,16 @@ function renderProducts() {
       }
     });
   }
+
+window.setInquirySort = function(key) {
+  if (iSortKey === key) {
+    iSortDir = iSortDir === 'asc' ? 'desc' : 'asc';
+  } else {
+    iSortKey = key;
+    iSortDir = 'desc';
+  }
+  renderInquiries();
+};
   
   const prevBtn = document.querySelector("#prevPage");
   const nextBtn = document.querySelector("#nextPage");
@@ -308,8 +363,31 @@ function renderInquiries() {
   if (!inquiryRows) return;
   inquiryRows.innerHTML = "";
 
-  // Apply Sorting
-  inquiries.sort((a, b) => {
+  // 1. Apply Filtering based on search
+  const searchInput = document.getElementById("inquirySearchInput");
+  const searchType = document.getElementById("inquirySearchType");
+  
+  let filteredInquiries = [...inquiries];
+  
+  if (searchInput && searchInput.value) {
+    const query = searchInput.value.toLowerCase();
+    const type = searchType.value; // 'orderNumber', 'customerName', 'phone'
+    
+    filteredInquiries = inquiries.filter(i => {
+      let val = "";
+      if (type === "orderNumber") {
+        val = i.orderNumber ? i.orderNumber.toString() : i.id.slice(0,6);
+      } else if (type === "customerName") {
+        val = i.customerName || i.name || "";
+      } else if (type === "phone") {
+        val = i.phone || "";
+      }
+      return val.toLowerCase().includes(query);
+    });
+  }
+
+  // 2. Apply Sorting on filteredInquiries
+  filteredInquiries.sort((a, b) => {
     let valA = a[iSortKey];
     let valB = b[iSortKey];
 
@@ -317,6 +395,9 @@ function renderInquiries() {
     if (iSortKey === 'timestamp') {
       valA = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(a.createdAt || 0);
       valB = b.timestamp?.toDate ? b.timestamp.toDate() : new Date(b.createdAt || 0);
+    } else if (iSortKey === 'orderNumber') {
+      valA = a.orderNumber || 0;
+      valB = b.orderNumber || 0;
     }
 
     if (typeof valA === 'string') valA = valA.toLowerCase();
@@ -327,14 +408,15 @@ function renderInquiries() {
     return 0;
   });
 
-  const totalInquiryPages = Math.ceil(inquiries.length / iPageSize);
+  const totalInquiryPages = Math.ceil(filteredInquiries.length / iPageSize);
   if (currentInquiryPage > totalInquiryPages) currentInquiryPage = Math.max(1, totalInquiryPages);
 
   const start = (currentInquiryPage - 1) * iPageSize;
   const end = start + iPageSize;
-  const paginatedInquiries = inquiries.slice(start, end);
+  const paginatedInquiries = filteredInquiries.slice(start, end);
 
-  paginatedInquiries.forEach(i => {
+  paginatedInquiries.forEach((i, pageIndex) => {
+    const globalIndex = inquiries.length - (start + pageIndex); // Descending order number
     const rawTime = i.timestamp?.toDate ? i.timestamp.toDate() : new Date(i.createdAt || 0);
     const date = rawTime.toLocaleDateString("en-IN", { day: '2-digit', month: 'short' });
     const time = rawTime.toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
@@ -345,6 +427,7 @@ function renderInquiries() {
     if (i.status === "contacted") statusClass = "status-contacted";
     if (i.status === "payment_done") statusClass = "status-payment";
     if (i.status === "completed") statusClass = "status-completed";
+    if (i.status === "cancelled") statusClass = "status-cancelled";
 
     row.innerHTML = `
       <td>
@@ -354,9 +437,11 @@ function renderInquiries() {
         </div>
       </td>
       <td>
+        <strong style="color:var(--gold); font-family:monospace;">${i.orderNumber ? '#' + i.orderNumber : '#' + i.id.slice(0,6)}</strong>
+      </td>
+      <td>
         <div style="display:flex; flex-direction:column;">
           <strong style="color:var(--gold);">${i.customerName || i.name}</strong>
-          <span style="font-size:0.75rem; color:var(--muted)">ID: ${i.id.slice(0,6)}</span>
         </div>
       </td>
       <td style="max-width:150px; font-size:0.8rem; line-height:1.3;">${i.address || i.location || '-'}</td>
@@ -368,11 +453,15 @@ function renderInquiries() {
         <strong style="color:var(--gold); font-size:1rem;">${price(i.total)}</strong>
       </td>
       <td>
+        <input type="text" value="${i.remark || ''}" onchange="updateInquiryRemark('${i.id}', this.value)" style="width:100%; padding:6px; background:rgba(255,255,255,0.05); border:1px solid #30363d; color:#fff; border-radius:4px; font-size:0.8rem;" placeholder="Add note...">
+      </td>
+      <td>
         <select class="status-select ${statusClass}" onchange="updateInquiryStatus('${i.id}', this.value)">
           <option value="new" ${i.status === 'new' ? 'selected' : ''}>NEW</option>
           <option value="contacted" ${i.status === 'contacted' ? 'selected' : ''}>CONTACTED</option>
           <option value="payment_done" ${i.status === 'payment_done' ? 'selected' : ''}>PAYMENT DONE</option>
           <option value="completed" ${i.status === 'completed' ? 'selected' : ''}>COMPLETED</option>
+          <option value="cancelled" ${i.status === 'cancelled' ? 'selected' : ''}>CANCELLED</option>
         </select>
       </td>
       <td class="admin-actions">
@@ -444,6 +533,14 @@ window.updateInquiryStatus = async (id, newStatus) => {
     await window.db.collection("inquiries").doc(id).update({ status: newStatus });
   } catch (err) {
     alert("Status update failed: " + err.message);
+  }
+};
+
+window.updateInquiryRemark = async (id, newRemark) => {
+  try {
+    await window.db.collection("inquiries").doc(id).update({ remark: newRemark });
+  } catch (err) {
+    alert("Failed to update remark: " + err.message);
   }
 };
 
@@ -652,6 +749,8 @@ function initTabs() {
 window.toggleStock = async (id, newState) => {
   try {
     await window.db.collection("products").doc(id).update({ inStock: newState });
+    const p = products.find(x => x.id === id);
+    if (p) p.inStock = newState;
   } catch (err) {
     alert("Stock update failed: " + err.message);
   }
@@ -939,8 +1038,9 @@ window.saveImageChanges = async (id) => {
   try {
     await window.db.collection("products").doc(id).update({ imageData: data });
     pendingImages.delete(id);
+    const p = products.find(x => x.id === id);
+    if (p) { p.imageData = data; renderProducts(); }
     showToast('✓ Image Saved!');
-    // UI will update from onSnapshot
   } catch (err) {
     showToast('✗ Save Failed', '#ef4444');
   }
@@ -962,6 +1062,8 @@ window.uploadProductImage = async (id, input) => {
       const compressed = getCompressedDataUrl(img, 400);
       try {
         await window.db.collection("products").doc(id).update({ imageData: compressed });
+        const p = products.find(x => x.id === id);
+        if (p) { p.imageData = compressed; renderProducts(); }
       } catch (err) {
         alert("Upload failed: " + err.message);
         originalLabel.innerHTML = originalHtml;
@@ -976,6 +1078,8 @@ window.deleteProduct = async (id) => {
   if (!confirm("Delete this product?")) return;
   try {
     await window.db.collection("products").doc(id).delete();
+    products = products.filter(x => x.id !== id);
+    renderProducts();
   } catch (err) {
     alert("Delete failed: " + err.message);
   }
@@ -1128,7 +1232,7 @@ window.exportInquiriesExcel = () => {
   }
 
   // Create CSV Header
-  let csv = "Date,Customer Name,Phone,Address,Items,Total Amount,Status\n";
+  let csv = "Order No,Date,Customer Name,Phone,Address,Items,Total Amount,Status\n";
 
   inquiries.forEach(i => {
     const rawTime = i.timestamp?.toDate ? i.timestamp.toDate() : new Date(i.createdAt || 0);
@@ -1137,8 +1241,9 @@ window.exportInquiriesExcel = () => {
     const name = (i.customerName || i.name || "N/A").replace(/,/g, " ");
     const addr = (i.address || "N/A").replace(/,/g, " ");
     const status = (i.status || "new").toUpperCase();
+    const orderNo = i.orderNumber ? `#${i.orderNumber}` : `#${i.id.slice(0,6)}`;
 
-    csv += `${date},${name},${i.phone},${addr},"${items}",${i.total},${status}\n`;
+    csv += `${orderNo},${date},${name},${i.phone},${addr},"${items}",${i.total},${status}\n`;
   });
 
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -1167,7 +1272,9 @@ window.exportInquiriesPDF = () => {
 
   const tableData = inquiries.map(i => {
     const rawTime = i.timestamp?.toDate ? i.timestamp.toDate() : new Date(i.createdAt || 0);
+    const orderNo = i.orderNumber ? `#${i.orderNumber}` : `#${i.id.slice(0,6)}`;
     return [
+      orderNo,
       rawTime.toLocaleDateString(),
       i.customerName || i.name,
       i.phone,
@@ -1180,7 +1287,7 @@ window.exportInquiriesPDF = () => {
 
   doc.autoTable({
     startY: 30,
-    head: [['Date', 'Customer', 'Phone', 'Address', 'Order', 'Total', 'Status']],
+    head: [['Order No', 'Date', 'Customer', 'Phone', 'Address', 'Items', 'Total', 'Status']],
     body: tableData,
     theme: 'striped',
     headStyles: { fillColor: [218, 165, 32] }
@@ -1214,6 +1321,11 @@ productForm?.addEventListener("submit", async (e) => {
 
   try {
     await window.db.collection("products").doc(id).set(data, { merge: true });
+    localStorage.removeItem("jey_products_cache");
+    const existing = products.find(x => x.id === id);
+
+    if (existing) { Object.assign(existing, data); } else { products.push({ id, ...data }); products.sort((a, b) => a.name.localeCompare(b.name)); }
+    renderProducts();
     productForm.reset();
     productForm.productId.value = "";
   } catch (err) {
@@ -1240,6 +1352,10 @@ document.getElementById("editForm")?.addEventListener("submit", async (e) => {
 
   try {
     await window.db.collection("products").doc(id).set(data, { merge: true });
+    localStorage.removeItem("jey_products_cache");
+    const existing = products.find(x => x.id === id);
+
+    if (existing) { Object.assign(existing, data); renderProducts(); }
     window.closeEditModal();
     showToast('✓ Changes Saved!');
   } catch (err) {
@@ -1451,11 +1567,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 window.goToPage = (num) => {
   currentPage = num;
+  localStorage.setItem('admin_currentPage', currentPage);
   renderProducts();
 };
 
 window.changePage = (dir) => {
   currentPage += dir;
+  localStorage.setItem('admin_currentPage', currentPage);
   renderProducts();
 };
 
@@ -1504,6 +1622,43 @@ document.addEventListener("click", (e) => {
     menus.forEach(m => m.classList.remove("active"));
   }
 });
+
+window.fixProductNamesCase = async () => {
+  if (!confirm("This will convert all product names from ALL CAPS to Title Case in the database. Proceed?")) return;
+  
+  try {
+    const snap = await window.db.collection("products").get();
+    const batch = window.db.batch();
+    let count = 0;
+    
+    snap.forEach(doc => {
+      const data = doc.data();
+      if (data.name) {
+        // Convert to Title Case
+        const newName = data.name.toLowerCase().split(' ').map(word => {
+          return word.charAt(0).toUpperCase() + word.slice(1);
+        }).join(' ');
+        
+        if (newName !== data.name) {
+          batch.update(doc.ref, { name: newName });
+          count++;
+        }
+      }
+    });
+    
+    if (count > 0) {
+      await batch.commit();
+      localStorage.removeItem("jey_products_cache");
+      alert(`Successfully updated ${count} products to Title Case!`);
+    } else {
+
+      alert("No products needed updating.");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Error updating products.");
+  }
+};
 
 window.showProductForm = () => {
   const form = document.getElementById("productForm");

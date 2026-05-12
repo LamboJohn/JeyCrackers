@@ -28,7 +28,7 @@ async function prerender() {
           <h3>${name}</h3>
           <span class="tag" style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;">${category}</span>
           <div class="price-line" style="margin-top: 10px;">
-            <strong style="color: var(--gold);">Rs. ${price}</strong> / ${unit}
+            <strong style="color: var(--gold);">₹ ${price}</strong> / ${unit}
           </div>
         </article>
       `;
