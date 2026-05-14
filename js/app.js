@@ -1,3 +1,10 @@
+import { db } from './firebase-modular.js';
+import { collection, getDocs, onSnapshot, orderBy, doc, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const defaultProducts = window.defaultProducts;
+const defaultSlides = window.defaultSlides;
+const defaultSettings = window.defaultSettings;
+
 // Default data is now loaded from products-data.js
 let products = defaultProducts;
 let currentPage = parseInt(sessionStorage.getItem('jey_currentPage')) || 1;
@@ -920,7 +927,7 @@ document.addEventListener("input", e => {
 
 // --- BEST BALANCED SETUP: SMART SYNC & CACHE ---
 function startSyncs() {
-  if (!window.db) return;
+  if (!db) return;
 
   // 1. Load from LocalStorage Cache immediately for instant speed
   const cachedProducts = localStorage.getItem("jey_products_cache");
@@ -945,7 +952,8 @@ function startSyncs() {
   // 2. Fetch from Firestore only if cache expired or missing
   if (needsFetch) {
     console.log("🔄 Fetching products from Firestore...");
-    window.db.collection("products").orderBy("name").get().then(snap => {
+    const q = query(collection(db, "products"), orderBy("name"));
+    getDocs(q).then(snap => {
       if (!snap.empty) {
         const newProducts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
@@ -980,14 +988,14 @@ function startSyncs() {
   }
 
   // Settings Sync (Small text, can stay real-time)
-  window.db.collection("settings").doc("main").onSnapshot(doc => {
-    if (doc.exists) {
+  onSnapshot(doc(db, "settings", "main"), doc => {
+    if (doc.exists()) {
       siteSettings = { ...siteSettings, ...doc.data() };
       applySiteSettings();
     }
   });
 
-  window.db.collection("slides").onSnapshot(snap => {
+  onSnapshot(collection(db, "slides"), snap => {
     if (!snap.empty) {
       heroSlides = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     } else {

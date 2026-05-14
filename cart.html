@@ -115,22 +115,26 @@
               <input id="customerName" name="customerName" placeholder="Enter your name" required>
             </div>
             <div class="form-row">
-              <label for="phone">WhatsApp Number</label>
-              <input id="phone" name="phone" inputmode="tel" placeholder="10-digit number" pattern="[0-9]{10,15}" required>
+              <label for="phone">Phone Number</label>
+              <input id="phone" name="phone" inputmode="tel" placeholder="10-digit number" pattern="[0-9]{10}" maxlength="10" minlength="10" required>
             </div>
             <div class="form-row">
               <label for="pincode">Pincode</label>
-              <input id="pincode" name="pincode" inputmode="numeric" pattern="[0-9]{6}" placeholder="Enter 6-digit Pincode" required>
+              <input id="pincode" name="pincode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" placeholder="Enter 6-digit Pincode" required>
             </div>
             <div class="form-grid">
               <div class="form-row">
-                <label for="city">City / District</label>
+                <label for="city">City / Area</label>
                 <input id="city" name="city" placeholder="City" required>
               </div>
               <div class="form-row">
-                <label for="state">State</label>
-                <input id="state" name="state" value="Tamil Nadu" required>
+                <label for="district">District</label>
+                <input id="district" name="district" placeholder="District" required>
               </div>
+            </div>
+            <div class="form-row">
+              <label for="state">State</label>
+              <input id="state" name="state" value="Tamil Nadu" required>
             </div>
             <div class="form-row">
               <label for="location">Delivery Address</label>
@@ -179,16 +183,9 @@
 
   <img id="pdfLogo" src="images/jeycrackers-j-edited.png" style="display:none;">
   
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-  <script src="js/firebase-config.js"></script>
   <script src="js/products-data.js"></script>
-  <script src="js/cart.js?v=81"></script>
+  <script type="module" src="js/cart.js?v=81"></script>
 </body>
 </html>

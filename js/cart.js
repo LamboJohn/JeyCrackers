@@ -1,3 +1,9 @@
+import { db } from './firebase-modular.js';
+import { collection, getDocs, getDoc, setDoc, addDoc, doc, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const defaultProducts = window.defaultProducts;
+const defaultSettings = window.defaultSettings;
+
 // Default data is now loaded from products-data.js
 let products = [...defaultProducts];
 let siteSettings = defaultSettings;
@@ -24,6 +30,7 @@ const cartEmptyMessage = document.querySelector("#cartEmptyMessage");
 setTimeout(() => {
   const pincodeInput = document.querySelector("#pincode");
   const cityInput = document.querySelector("#city");
+  const districtInput = document.querySelector("#district");
   const stateInput = document.querySelector("#state");
 
   if (pincodeInput) {
@@ -32,6 +39,7 @@ setTimeout(() => {
       if (pincode.length === 6 && /^[0-9]+$/.test(pincode)) {
         try {
           if (cityInput) cityInput.placeholder = "Fetching City...";
+          if (districtInput) districtInput.placeholder = "Fetching District...";
           if (stateInput) stateInput.value = "Fetching State...";
           
           const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
@@ -40,12 +48,17 @@ setTimeout(() => {
           if (data[0] && data[0].Status === "Success") {
             const postOffice = data[0].PostOffice[0];
             if (cityInput) {
-              cityInput.value = postOffice.District;
-              cityInput.placeholder = "City / District";
+              cityInput.value = postOffice.Name;
+              cityInput.placeholder = "City / Area";
+            }
+            if (districtInput) {
+              districtInput.value = postOffice.District;
+              districtInput.placeholder = "District";
             }
             if (stateInput) stateInput.value = postOffice.State;
           } else {
             if (cityInput) cityInput.placeholder = "City not found";
+            if (districtInput) districtInput.placeholder = "District not found";
             if (stateInput) stateInput.value = "";
           }
         } catch (err) {
@@ -190,7 +203,7 @@ function buildMessage(formData) {
   msg += `*Customer Details:*\n`;
   msg += `Name: ${formData.get("customerName")}\n`;
   msg += `Phone: ${formData.get("phone")}\n`;
-  msg += `Address: ${formData.get("location")}, ${formData.get("state")} - ${formData.get("pincode")}\n`;
+  msg += `Address: ${formData.get("location")}, ${formData.get("city")}, ${formData.get("district")}, ${formData.get("state")} - ${formData.get("pincode")}\n`;
 
   return msg;
 }
@@ -212,22 +225,22 @@ function basketSummary() {
 async function saveInquiry(formData, message) {
   try {
     // Read the counter
-    const counterDoc = await window.db.collection("counters").doc("inquiries").get();
+    const counterDoc = await getDoc(doc(db, "counters", "inquiries"));
     let count = 1000;
-    if (counterDoc.exists) {
+    if (counterDoc.exists()) {
       count = counterDoc.data().currentValue || 1000;
     }
     const newCount = count + 1;
     
     // Update the counter immediately
-    await window.db.collection("counters").doc("inquiries").set({ currentValue: newCount }, { merge: true });
+    await setDoc(doc(db, "counters", "inquiries"), { currentValue: newCount }, { merge: true });
     
     // Save the enquiry
-    await window.db.collection("inquiries").add({
+    await addDoc(collection(db, "inquiries"), {
       orderNumber: newCount,
       customerName: formData.get("customerName"),
       phone: formData.get("phone"),
-      address: `${formData.get("location")}, ${formData.get("state")} - ${formData.get("pincode")}`,
+      address: `${formData.get("location")}, ${formData.get("city")}, ${formData.get("district")}, ${formData.get("state")} - ${formData.get("pincode")}`,
       items: [...basket.entries()].map(([id, qty]) => {
         const p = products.find(prod => prod.id === id);
         return { id, qty, name: p ? p.name : id };
@@ -237,7 +250,7 @@ async function saveInquiry(formData, message) {
       message,
       status: "new",
       createdAt: new Date().toISOString(),
-      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      timestamp: serverTimestamp()
     });
     
     console.log("Inquiry saved with order number #" + newCount);
@@ -326,7 +339,7 @@ function generatePDF(formData, summary) {
   doc.text(`Customer: ${formData.get("customerName")}`, 20, 51);
   doc.setFont("helvetica", "normal");
   doc.text(`Phone: ${formData.get("phone")}`, 20, 57);
-  doc.text(`Address: ${formData.get("location")}, ${formData.get("state")} - ${formData.get("pincode")}`, 20, 63);
+  doc.text(`Address: ${formData.get("location")}, ${formData.get("city")}, ${formData.get("district")}, ${formData.get("state")} - ${formData.get("pincode")}`, 20, 63);
   
   doc.setTextColor(100, 100, 100);
   doc.setFontSize(9);
@@ -514,7 +527,7 @@ function showSuccessOverlay() {
 
 // Load Initial Data with Caching
 async function init() {
-  if (!window.db) {
+  if (!db) {
     console.error("Firestore not initialized");
     return;
   }
@@ -535,13 +548,14 @@ async function init() {
   }
 
   try {
-    const settingsDoc = await window.db.collection("settings").doc("main").get();
-    if (settingsDoc.exists) siteSettings = { ...siteSettings, ...settingsDoc.data() };
+    const settingsDoc = await getDoc(doc(db, "settings", "main"));
+    if (settingsDoc.exists()) siteSettings = { ...siteSettings, ...settingsDoc.data() };
 
     // 2. Fetch from Firestore only if cache expired or missing
     if (needsFetch) {
       console.log("🔄 Fetching products from Firestore...");
-      const prodSnap = await window.db.collection("products").orderBy("name").get();
+      const q = query(collection(db, "products"), orderBy("name"));
+      const prodSnap = await getDocs(q);
       if (!prodSnap.empty) {
         products = prodSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         // Sync cache
@@ -552,7 +566,7 @@ async function init() {
       }
     }
 
-    const promoSnap = await window.db.collection("promoCodes").get();
+    const promoSnap = await getDocs(collection(db, "promoCodes"));
     promoCodes = promoSnap.docs.map(d => d.data());
   } catch (err) {
     console.error("Sync error:", err);

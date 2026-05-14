@@ -359,6 +359,68 @@ function updateCategoryDatalist() {
   datalist.innerHTML = cats.map(c => `<option value="${c}">`).join("");
 }
 
+window.viewInquiryDetails = (id) => {
+  const i = inquiries.find(x => x.id === id);
+  if (!i) return;
+
+  const modal = document.getElementById("inquiryDetailsModal");
+  const orderNo = document.getElementById("detailsOrderNo");
+  const customerInfo = document.getElementById("detailsCustomerInfo");
+  const itemsRows = document.getElementById("detailsItemsRows");
+  const total = document.getElementById("detailsTotal");
+  const remarkField = document.getElementById("detailsRemark");
+  const saveBtn = document.getElementById("saveDetailsBtn");
+  const statusContainer = document.getElementById("detailsStatusContainer");
+
+  orderNo.textContent = i.orderNumber ? '#' + i.orderNumber : '#' + i.id.slice(0,6);
+  remarkField.value = i.remark || "";
+  total.textContent = price(i.total);
+
+  customerInfo.innerHTML = `
+    <div><span style="color:var(--muted)">Name:</span> <strong style="color:#fff">${i.customerName || i.name}</strong></div>
+    <div><span style="color:var(--muted)">Phone:</span> <strong style="color:#fff">${i.phone}</strong></div>
+    <div><span style="color:var(--muted)">Location:</span> <span style="color:#fff">${i.address || i.location || '-'}</span></div>
+    <div><span style="color:var(--muted)">Date:</span> <span style="color:#fff">${new Date(i.timestamp?.toDate ? i.timestamp.toDate() : (i.createdAt || 0)).toLocaleString("en-IN")}</span></div>
+  `;
+
+  itemsRows.innerHTML = (i.items || []).map(item => {
+    const p = products.find(x => x.id === item.id);
+    const unitPrice = p ? p.price : (i.total / (i.items.length || 1)); // fallback
+    return `
+      <tr>
+        <td style="padding:12px 8px; border-bottom:1px solid rgba(255,255,255,0.05);">
+          <div style="font-weight:600; color:#fff;">${item.name || item.id}</div>
+          <div style="font-size:0.75rem; color:var(--muted);">${p ? p.category : ''}</div>
+        </td>
+        <td style="text-align:center; color:var(--gold); font-weight:700;">${item.qty}</td>
+        <td style="text-align:right; font-weight:700;">${price(unitPrice * item.qty)}</td>
+      </tr>
+    `;
+  }).join("");
+
+  statusContainer.innerHTML = `
+    <span style="color:var(--muted); font-size:0.8rem; display:block; margin-bottom:5px;">Current Status</span>
+    <div class="tag status-${i.status || 'new'}" style="text-transform:uppercase; font-size:0.8rem; padding:6px 12px; border-radius:6px; display:inline-block; font-weight:800;">
+      ${i.status || 'new'}
+    </div>
+  `;
+
+  saveBtn.onclick = async () => {
+    saveBtn.disabled = true;
+    saveBtn.textContent = "Saving...";
+    await window.updateInquiryRemark(i.id, remarkField.value);
+    saveBtn.disabled = false;
+    saveBtn.textContent = "Save Remarks";
+    alert("Remarks saved successfully!");
+  };
+
+  modal.style.display = "flex";
+};
+
+window.closeInquiryDetails = () => {
+  document.getElementById("inquiryDetailsModal").style.display = "none";
+};
+
 function renderInquiries() {
   if (!inquiryRows) return;
   inquiryRows.innerHTML = "";
@@ -444,30 +506,38 @@ function renderInquiries() {
           <strong style="color:var(--gold);">${i.customerName || i.name}</strong>
         </div>
       </td>
-      <td style="max-width:150px; font-size:0.8rem; line-height:1.3;">${i.address || i.location || '-'}</td>
-      <td style="font-family:monospace; font-weight:700; color:var(--muted)">📞 ${i.phone}</td>
+      <td><div class="location-cell" title="${i.address || i.location || '-'}">${i.address || i.location || '-'}</div></td>
+      <td style="font-family:monospace; font-weight:700; color:var(--muted); font-size:0.85rem;">${i.phone}</td>
       <td>
-        <div class="inquiry-items-summary" style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size:0.8rem; color:var(--muted); margin-bottom:4px;">
-          ${(i.items || []).map(x => x.name || x.id).join(", ")}
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <div class="inquiry-items-summary" style="display:flex; flex-wrap:wrap; gap:4px; max-width: 160px;">
+            ${(i.items || []).slice(0, 2).map(x => `<span class="item-pill">${x.name || x.id}</span>`).join("")}
+            ${(i.items || []).length > 2 ? `<span style="font-size:0.7rem; color:var(--gold); font-weight:800;">+${i.items.length - 2} more</span>` : ''}
+          </div>
+          <button class="button sm ghost" onclick="viewInquiryDetails('${i.id}')" style="font-size:0.7rem; padding:4px 8px; height:24px; min-height:auto; width:fit-content;">View Details</button>
         </div>
-        <strong style="color:var(--gold); font-size:1rem;">${price(i.total)}</strong>
       </td>
       <td>
-        <input type="text" value="${i.remark || ''}" onchange="updateInquiryRemark('${i.id}', this.value)" style="width:100%; padding:6px; background:rgba(255,255,255,0.05); border:1px solid #30363d; color:#fff; border-radius:4px; font-size:0.8rem;" placeholder="Add note...">
+        <strong style="color:var(--gold); font-size:1.1rem; white-space:nowrap;">${price(i.total)}</strong>
+      </td>
+      <td>
+        <input type="text" value="${i.remark || ''}" onchange="updateInquiryRemark('${i.id}', this.value)" style="width:100%; padding:6px; background:rgba(255,255,255,0.05); border:1px solid #30363d; color:#fff; border-radius:4px; font-size:0.8rem;" placeholder="...">
       </td>
       <td>
         <select class="status-select ${statusClass}" onchange="updateInquiryStatus('${i.id}', this.value)">
           <option value="new" ${i.status === 'new' ? 'selected' : ''}>NEW</option>
           <option value="contacted" ${i.status === 'contacted' ? 'selected' : ''}>CONTACTED</option>
-          <option value="payment_done" ${i.status === 'payment_done' ? 'selected' : ''}>PAYMENT DONE</option>
-          <option value="completed" ${i.status === 'completed' ? 'selected' : ''}>COMPLETED</option>
-          <option value="cancelled" ${i.status === 'cancelled' ? 'selected' : ''}>CANCELLED</option>
+          <option value="payment_done" ${i.status === 'payment_done' ? 'selected' : ''}>PAID</option>
+          <option value="completed" ${i.status === 'completed' ? 'selected' : ''}>DONE</option>
+          <option value="cancelled" ${i.status === 'cancelled' ? 'selected' : ''}>X</option>
         </select>
       </td>
-      <td class="admin-actions">
-        <button class="button sm success" onclick="sendDispatchMessage('${i.id}')" title="Send Dispatch WhatsApp">Dispatch</button>
-        <button class="button sm primary" onclick="downloadInquiryPDF('${i.id}')" title="Download PDF Quote">PDF</button>
-        <button class="button sm danger" onclick="deleteInquiry('${i.id}')" title="Delete Permanent">Delete</button>
+      <td>
+        <div class="admin-actions-wrap">
+          <button class="button sm success" onclick="sendDispatchMessage('${i.id}')" title="Dispatch">Ship</button>
+          <button class="button sm primary" onclick="downloadInquiryPDF('${i.id}')" title="PDF">PDF</button>
+          <button class="button sm danger" onclick="deleteInquiry('${i.id}')" title="Delete">Del</button>
+        </div>
       </td>
     `;
     inquiryRows.appendChild(row);

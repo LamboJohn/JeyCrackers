@@ -1,11 +1,11 @@
 // --- SHARED DEFAULT DATA ---
 // This file acts as the single source of truth for fallback data.
 
-const defaultProducts = [];
+window.defaultProducts = [];
 
-const defaultSlides = [];
+window.defaultSlides = [];
 
-const defaultSettings = {
+window.defaultSettings = {
   shopName: "Jey Crackers",
   phone: "9962384697",
   whatsapp: "919962384697",
@@ -13,3 +13,4 @@ const defaultSettings = {
   heroTitle: "Buy Premium Diwali Crackers at Factory Prices",
   heroText: "Light up your Diwali with sparklers, fountains, rockets, gift boxes, and celebration crackers. Build your list and order in 2 minutes via WhatsApp with no login and no payment hassle."
 };
+
