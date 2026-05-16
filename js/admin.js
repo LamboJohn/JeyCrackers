@@ -97,6 +97,18 @@ function price(value) {
   return `₹ ${Number(value || 0).toLocaleString("en-IN")}`;
 }
 
+function hideLoader() {
+  const loader = document.getElementById('loader-wrapper');
+  if (loader) {
+    loader.classList.add('loaded');
+    document.body.style.overflow = ''; // Restore scroll
+    setTimeout(() => {
+      loader.style.display = 'none';
+    }, 600);
+  }
+}
+
+
 function slugify(text) {
   return text.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
@@ -152,8 +164,10 @@ function initAuth() {
     } else {
       overlay?.classList.add("active");
       document.body.style.overflow = "hidden";
+      hideLoader(); // Hide loader so login can be seen
     }
   });
+
 
 
   loginForm?.addEventListener("submit", async (e) => {
@@ -206,10 +220,13 @@ async function startDataSyncs() {
     currentInquiryPage = parseInt(localStorage.getItem('admin_inqPage')) || 1;
     renderInquiries();
     renderStats();
+    hideLoader(); // Hide loader after data sync
   } catch (err) {
     console.error("Error loading data:", err);
+    hideLoader(); // Hide even on error
   }
 }
+
 
 // --- RENDERERS ---
 function renderProducts() {

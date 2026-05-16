@@ -5486,3 +5486,93 @@ footer .footer-socials .social-icon {
   white-space: nowrap;
   border-width: 0;
 }
+
+/* --- PREMIUM LOADER --- */
+#loader-wrapper {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #0b0c10;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#loader-wrapper.loaded {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.loader-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.loader-logo {
+  width: 120px;
+  height: auto;
+  filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.5));
+  animation: loaderPulse 2s infinite ease-in-out;
+}
+
+.loader-spinner-container {
+  position: relative;
+  width: 60px;
+  height: 60px;
+}
+
+.loader-spinner {
+  width: 100%;
+  height: 100%;
+  border: 3px solid rgba(255, 215, 0, 0.1);
+  border-top-color: #ffd700;
+  border-radius: 50%;
+  animation: loaderSpin 1s linear infinite;
+}
+
+.loader-spinner::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border: 2px solid rgba(255, 69, 0, 0.1);
+  border-bottom-color: #ff4500;
+  border-radius: 50%;
+  animation: loaderSpin 1.5s linear infinite reverse;
+}
+
+.loader-text {
+  color: #ffd700;
+  font-family: Montserrat, sans-serif;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  margin-top: 10px;
+  background: linear-gradient(90deg, #ffd700, #fff, #ffd700);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 3s linear infinite;
+}
+
+@keyframes loaderPulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.5)); }
+  50% { transform: scale(1.05); filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.8)); }
+}
+
+@keyframes loaderSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes shine {
+  to { background-position: 200% center; }
+}

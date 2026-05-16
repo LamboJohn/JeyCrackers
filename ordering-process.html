@@ -25,7 +25,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@800;900&family=Montserrat:wght@600;700;800;900&family=Poppins:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css?v=78">
 </head>
-<body>
+<body style="overflow: hidden;">
+  <div id="loader-wrapper">
+    <div class="loader-content">
+      <img src="images/jeycrackers-j-edited.png" alt="Jey Crackers" class="loader-logo">
+      <div class="loader-spinner-container">
+        <div class="loader-spinner"></div>
+      </div>
+      <p class="loader-text">Loading Details...</p>
+    </div>
+  </div>
+
   <header class="header">
     <div class="top-bar">
       <div class="top-bar-track">
@@ -97,13 +107,8 @@
     </div>
   </footer>
 
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
-  <script src="js/firebase-config.js"></script>
   <script src="js/products-data.js"></script>
-  <script src="js/app.js?v=77"></script>
+  <script type="module" src="js/app.js?v=1004"></script>
+
 </body>
 </html>

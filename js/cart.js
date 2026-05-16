@@ -74,6 +74,18 @@ function price(value) {
   return `₹ ${Number(value || 0).toLocaleString("en-IN")}`;
 }
 
+function hideLoader() {
+  const loader = document.getElementById('loader-wrapper');
+  if (loader) {
+    loader.classList.add('loaded');
+    document.body.style.overflow = ''; // Restore scroll
+    setTimeout(() => {
+      loader.style.display = 'none';
+    }, 600);
+  }
+}
+
+
 function saveBasket() {
   localStorage.setItem("crackerBasket", JSON.stringify([...basket.entries()]));
 }
@@ -573,8 +585,13 @@ async function init() {
   } finally {
     renderBasket();
     document.querySelector("#applyPromo")?.addEventListener("click", applyPromo);
+    hideLoader();
   }
 }
+
+// Safety fallback
+setTimeout(hideLoader, 5000);
+
 
 init();
 

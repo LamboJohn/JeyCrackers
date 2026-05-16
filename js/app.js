@@ -213,6 +213,19 @@ function productIcon(category) {
 }
 
 
+function hideLoader() {
+  const loader = document.getElementById('loader-wrapper');
+  if (loader) {
+    loader.classList.add('loaded');
+    document.body.style.overflow = ''; // Restore scroll
+    setTimeout(() => {
+      loader.style.display = 'none';
+    }, 600);
+  }
+}
+
+
+
 
 function productVisual(product) {
   if (product.imageData || product.image) {
@@ -943,7 +956,9 @@ function startSyncs() {
       fillCategories();
       renderProducts();
       renderFloatingCart();
+      hideLoader(); // Hide loader after cache render
       needsFetch = false; // Cache is fresh, no need to fetch
+
     } catch (e) {
       console.error("Cache corrupted, ignoring.");
     }
@@ -969,13 +984,16 @@ function startSyncs() {
         fillCategories();
         renderProducts();
         renderFloatingCart();
+        hideLoader(); // Hide loader after firestore render
       } else {
         // If Firestore is empty, use defaults
         products = defaultProducts;
         fillCategories();
         renderProducts();
         renderFloatingCart();
+        hideLoader(); // Hide loader after default render
       }
+
     }).catch(err => {
       console.error("Firestore Error:", err);
       if (!products || products.length === 0) {
@@ -983,8 +1001,10 @@ function startSyncs() {
         fillCategories();
         renderProducts();
         renderFloatingCart();
+        hideLoader();
       }
     });
+
   }
 
   // Settings Sync (Small text, can stay real-time)
@@ -1159,4 +1179,8 @@ document.addEventListener("DOMContentLoaded", () => {
   cartPopover?.addEventListener("click", (e) => {
     e.stopPropagation();
   });
+
+  // Safety fallback for loader
+  setTimeout(hideLoader, 5000);
 });
+

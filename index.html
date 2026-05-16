@@ -36,7 +36,17 @@
     rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css?v=1003">
 
-<body>
+<body style="overflow: auto;">
+  <div id="loader-wrapper">
+    <div class="loader-content">
+      <img src="images/jeycrackers-j-edited.png" alt="Jey Crackers" class="loader-logo">
+      <div class="loader-spinner-container">
+        <div class="loader-spinner"></div>
+      </div>
+      <p class="loader-text">Igniting Celebrations...</p>
+    </div>
+  </div>
+
   <header class="header">
     <!-- Top Compliance Bar -->
     <div class="top-bar">
@@ -393,8 +403,7 @@
     </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
   <script src="js/products-data.js"></script>
   <script type="module" src="js/app.js?v=1004"></script>
 </body>

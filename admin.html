@@ -53,8 +53,19 @@
       #pageNumber { font-weight: 600; color: var(--gold); min-width: 100px; text-align: center; }
     </style>
 </head>
-<body class="admin-body">
+<body class="admin-body" style="overflow: hidden;">
+  <div id="loader-wrapper">
+    <div class="loader-content">
+      <img src="images/jeycrackers-j-edited.png" alt="Jey Crackers" class="loader-logo">
+      <div class="loader-spinner-container">
+        <div class="loader-spinner"></div>
+      </div>
+      <p class="loader-text">Loading Dashboard...</p>
+    </div>
+  </div>
+
     <div id="loginOverlay" class="login-overlay active">
+
       <form id="loginForm" class="login-card">
         <h2>Admin Login</h2>
         <p>Enter your credentials to manage Jey Crackers</p>
