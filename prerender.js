@@ -67,6 +67,9 @@ async function prerender() {
 
 function updatePage(template, products, filePath, categoryName) {
   let html = "";
+  const baseUrl = "https://jeycrackers.com";
+  
+  // 1. Generate Product HTML
   products.forEach(p => {
     html += `
       <article class="product-card" style="border: 1px solid #30363d; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
@@ -80,6 +83,47 @@ function updatePage(template, products, filePath, categoryName) {
     `;
   });
 
+  // 2. Generate JSON-LD Schema
+  const schema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "name": "Jey Crackers",
+        "url": baseUrl,
+        "logo": `${baseUrl}/images/jeycrackers-j-edited.png`,
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "telephone": "+91-9962384697",
+          "contactType": "customer service"
+        }
+      },
+      {
+        "@type": "ItemList",
+        "name": categoryName === "Home" ? "Our Firecracker Catalog" : `${categoryName} Collection`,
+        "numberOfItems": products.length,
+        "itemListElement": products.map((p, index) => ({
+          "@type": "ListItem",
+          "position": index + 1,
+          "item": {
+            "@type": "Product",
+            "name": p.name,
+            "description": p.description || `High-quality ${p.name} from Sivakasi.`,
+            "brand": { "@type": "Brand", "name": "Jey Crackers" },
+            "offers": {
+              "@type": "Offer",
+              "price": p.price,
+              "priceCurrency": "INR",
+              "availability": "https://schema.org/InStock"
+            }
+          }
+        }))
+      }
+    ]
+  };
+
+  const schemaHtml = `\n  <script type="application/ld+json">\n${JSON.stringify(schema, null, 2)}\n  </script>`;
+
   let output = template;
 
   // Update Title & Meta for Categories
@@ -88,11 +132,14 @@ function updatePage(template, products, filePath, categoryName) {
     output = output.replace(/content="Jey Crackers - See It Burst Before You Buy It"/, `content="Buy high-quality ${categoryName} from Jey Crackers. See them burst before you buy. Wholesale prices and safe delivery."`);
   }
 
+  // Inject Schema into Head
+  output = output.replace('</head>', `${schemaHtml}\n</head>`);
+
   const regex = /(<div id="productGrid" class="product-grid" aria-live="polite">)([\s\S]*?)(<\/div>)/;
   if (regex.test(output)) {
     output = output.replace(regex, `$1${html}$3`);
     fs.writeFileSync(filePath, output);
-    console.log(`  ✓ Generated: ${filePath}`);
+    console.log(`  ✓ Generated: ${filePath} (with Schema)`);
   }
 }
 
