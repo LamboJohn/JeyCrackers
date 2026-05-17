@@ -135,7 +135,7 @@ function updatePage(template, products, filePath, categoryName) {
   // Inject Schema into Head
   output = output.replace('</head>', `${schemaHtml}\n</head>`);
 
-  const regex = /(<div id="productGrid" class="product-grid" aria-live="polite">)([\s\S]*?)(<\/div>)/;
+  const regex = /(<div id="productGrid" class="product-grid" aria-live="polite">)([\s\S]*?)(<\/div>)(?=\s*<div id="pagination")/;
   if (regex.test(output)) {
     output = output.replace(regex, `$1${html}$3`);
     fs.writeFileSync(filePath, output);
