@@ -201,6 +201,10 @@ async function startDataSyncs() {
     const doc = await window.db.collection("settings").doc("main").get();
     if (doc.exists) {
       settings = doc.data();
+      if (settings && settings.shopName === "Jey Crackers") {
+        settings.shopName = "JeyCrackers";
+        window.db.collection("settings").doc("main").update({ shopName: "JeyCrackers" }).catch(e => console.error("Self-heal failed:", e));
+      }
       fillSettingsForm();
     }
 
@@ -609,7 +613,7 @@ window.sendDispatchMessage = (id) => {
   // Clean phone number (ensure 91 prefix)
   const cleanPhone = phone.length === 10 ? "91" + phone : phone;
   
-  const message = `Hello ${customerName}, your Jey Crackers order has been dispatched! Thank you for choosing us. Happy celebrations! 🎇`;
+  const message = `Hello ${customerName}, your JeyCrackers order has been dispatched! Thank you for choosing us. Happy celebrations! 🎇`;
   
   const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
   window.open(whatsappUrl, '_blank');
@@ -1786,7 +1790,7 @@ window.exportProductsPDF = () => {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   
-  doc.text("Jey Crackers - Product Catalogue", 14, 15);
+  doc.text("JeyCrackers - Product Catalogue", 14, 15);
   
   const tableData = products.map((p, i) => [
     i + 1,

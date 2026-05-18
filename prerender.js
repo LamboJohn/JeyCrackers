@@ -89,7 +89,7 @@ function updatePage(template, products, filePath, categoryName) {
     "@graph": [
       {
         "@type": "Organization",
-        "name": "Jey Crackers",
+        "name": "JeyCrackers",
         "url": baseUrl,
         "logo": `${baseUrl}/images/jeycrackers-j-edited.png`,
         "contactPoint": {
@@ -109,7 +109,7 @@ function updatePage(template, products, filePath, categoryName) {
             "@type": "Product",
             "name": p.name,
             "description": p.description || `High-quality ${p.name} from Sivakasi.`,
-            "brand": { "@type": "Brand", "name": "Jey Crackers" },
+            "brand": { "@type": "Brand", "name": "JeyCrackers" },
             "offers": {
               "@type": "Offer",
               "price": p.price,
@@ -128,8 +128,8 @@ function updatePage(template, products, filePath, categoryName) {
 
   // Update Title & Meta for Categories
   if (categoryName !== "Home") {
-    output = output.replace(/<title>.*?<\/title>/, `<title>${categoryName} - Buy Online | Jey Crackers</title>`);
-    output = output.replace(/content="Jey Crackers - See It Burst Before You Buy It"/, `content="Buy high-quality ${categoryName} from Jey Crackers. See them burst before you buy. Wholesale prices and safe delivery."`);
+    output = output.replace(/<title>.*?<\/title>/, `<title>${categoryName} - Buy Online | JeyCrackers</title>`);
+    output = output.replace(/content="Jey\s*Crackers - See It Burst Before You Buy It"/i, `content="Buy high-quality ${categoryName} from JeyCrackers. See them burst before you buy. Wholesale prices and safe delivery."`);
   }
 
   // Inject Schema into Head

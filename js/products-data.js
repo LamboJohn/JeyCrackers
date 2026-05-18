@@ -6,7 +6,7 @@ window.defaultProducts = [];
 window.defaultSlides = [];
 
 window.defaultSettings = {
-  shopName: "Jey Crackers",
+  shopName: "JeyCrackers",
   phone: "9962384697",
   whatsapp: "919962384697",
   city: "Your City",

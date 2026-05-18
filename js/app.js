@@ -1,5 +1,5 @@
 import { db } from './firebase-modular.js';
-import { collection, getDocs, onSnapshot, orderBy, doc, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, getDocs, onSnapshot, orderBy, doc, query, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const defaultProducts = window.defaultProducts;
 const defaultSlides = window.defaultSlides;
@@ -120,12 +120,16 @@ function price(value) {
 }
 
 function applySiteSettings() {
+  let shopName = siteSettings.shopName;
+  if (shopName && shopName.toLowerCase().startsWith("jey")) {
+    shopName = "JeyCrackers";
+  }
   document.querySelectorAll(".brand strong, footer span:first-child, address strong").forEach((item) => {
-    item.textContent = siteSettings.shopName;
+    item.textContent = shopName;
   });
   const heroTitle = document.querySelector("#hero-title");
   const heroText = document.querySelector(".hero-subcopy");
-  if (heroTitle) heroTitle.textContent = siteSettings.heroTitle || siteSettings.shopName;
+  if (heroTitle) heroTitle.textContent = siteSettings.heroTitle || shopName;
   if (heroText) heroText.textContent = siteSettings.heroText;
 
   // Full Header Branding Architect
@@ -399,7 +403,7 @@ function updateProductSchema(paginatedList) {
         "sku": product.id,
         "brand": {
           "@type": "Brand",
-          "name": "Jey Crackers"
+          "name": "JeyCrackers"
         },
         "offers": {
           "@type": "Offer",
@@ -410,7 +414,7 @@ function updateProductSchema(paginatedList) {
           "availability": product.inStock !== false ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
           "seller": {
             "@type": "Organization",
-            "name": "Jey Crackers"
+            "name": "JeyCrackers"
           }
         }
       }
@@ -754,7 +758,7 @@ function changeQuantity(id, delta) {
 
 // --- INITIALIZATION ---
 function initializeApp() {
-  console.log("Jey Crackers App Initializing...");
+  console.log("JeyCrackers App Initializing...");
   applySiteSettings();
   fillCategories();
   renderHeroSlider();
@@ -1008,9 +1012,14 @@ function startSyncs() {
   }
 
   // Settings Sync (Small text, can stay real-time)
-  onSnapshot(doc(db, "settings", "main"), doc => {
-    if (doc.exists()) {
-      siteSettings = { ...siteSettings, ...doc.data() };
+  onSnapshot(doc(db, "settings", "main"), docSnap => {
+    if (docSnap.exists()) {
+      let data = docSnap.data();
+      if (data && data.shopName === "Jey Crackers") {
+        data.shopName = "JeyCrackers";
+        updateDoc(docSnap.ref, { shopName: "JeyCrackers" }).catch(e => console.error("Self-heal failed:", e));
+      }
+      siteSettings = { ...siteSettings, ...data };
       applySiteSettings();
     }
   });
